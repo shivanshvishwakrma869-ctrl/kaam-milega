@@ -1,0 +1,48 @@
+{
+  "name": "KaamMilega — Find Local Workers",
+  "short_name": "KaamMilega",
+  "description": "Find verified local skilled workers near you in India. Call or WhatsApp directly.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ecfdf5",
+  "theme_color": "#047857",
+  "lang": "en-IN",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Find workers",
+      "short_name": "Workers",
+      "url": "/workers",
+      "description": "Search the worker directory"
+    },
+    {
+      "name": "Browse jobs",
+      "short_name": "Jobs",
+      "url": "/jobs",
+      "description": "See open work near you"
+    }
+  ]
+}

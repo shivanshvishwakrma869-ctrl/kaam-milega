@@ -1,0 +1,65 @@
+# KaamMilega — robots.txt
+# https://kaam-milega.netlify.app/
+
+User-agent: *
+Allow: /
+Disallow: /profile
+Disallow: /*?*q=
+Disallow: /*?*sort=
+
+# Search-result permutations create near-duplicate pages; the canonical
+# category pages (/workers?trade=...) are the ones worth indexing.
+
+# --- Search engines -------------------------------------------------------
+User-agent: Googlebot
+Allow: /
+Disallow: /profile
+
+User-agent: Bingbot
+Allow: /
+Disallow: /profile
+
+# --- AI crawlers ----------------------------------------------------------
+# Allowed: public listings help people find local workers, which is the point
+# of the product. See /llms.txt for structured guidance.
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# --- Aggressive SEO scrapers ----------------------------------------------
+# Blocked: no user benefit, meaningful bandwidth cost.
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+Sitemap: https://kaam-milega.netlify.app/sitemap.xml

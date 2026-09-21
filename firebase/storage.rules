@@ -1,0 +1,47 @@
+rules_version = '2';
+
+// =============================================================================
+// KaamMilega — Cloud Storage Security Rules
+// Profile photos and job images. Unbounded uploads are a cost and abuse vector,
+// so size and content type are enforced here, not just in the picker UI.
+// =============================================================================
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/(jpeg|png|webp|avif)');
+    }
+
+    function underSize(mb) {
+      return request.resource.size < mb * 1024 * 1024;
+    }
+
+    // Profile photos: public to read (they appear in the directory),
+    // writable only by their owner, capped at 3 MB.
+    match /avatars/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if isOwner(uid) && isImage() && underSize(3);
+      allow delete: if isOwner(uid);
+    }
+
+    // Job photos: same rules, capped at 5 MB, max relevance to one job.
+    match /jobs/{uid}/{jobId}/{fileName} {
+      allow read: if true;
+      allow write: if isOwner(uid) && isImage() && underSize(5);
+      allow delete: if isOwner(uid);
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

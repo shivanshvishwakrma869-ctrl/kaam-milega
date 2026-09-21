@@ -4,22 +4,43 @@
 .env.*.local
 *.pem
 *.key
+service-account*.json
 
-# Dependencies (once a backend/build step is added)
+# Dependencies
 node_modules/
-package-lock.json
-yarn.lock
 
 # Build output
 dist/
-build/
+.vite/
 
-# OS / editor files
+# Generated at build time (scripts/prebuild.mjs)
+public/sitemap.xml
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.runtimeconfig.json
+
+# Test output
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+
+# OS / editor
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+*.swp
 
 # Logs
 *.log
 npm-debug.log*
+yarn-debug.log*
+
+# Vendored AI skills: exclude Python caches, keep the skill data itself
+.claude/**/__pycache__/
+.claude/**/*.pyc

@@ -1,0 +1,123 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--no-audit --no-fund"
+
+# ---------------------------------------------------------------------------
+# Routing.
+#
+# `npm run build` prerenders /, /workers, /jobs, /about, /privacy and /terms
+# into real directories (dist/workers/index.html and so on). Netlify serves a
+# matching static file before it ever consults these rules, so those routes are
+# delivered as fully-populated HTML — which is what non-JS crawlers and the
+# WhatsApp/Facebook/Twitter link previewers need.
+#
+# The rule below is the fallback for everything else: /profile (deliberately
+# not prerendered, since it is per-user and noindex) and any unknown path,
+# which the client router renders as the 404 view.
+#
+# force = false is the default and is what we want: it means "only use this
+# when no static file matched". Setting force = true here would shadow every
+# prerendered page and undo the work above.
+# ---------------------------------------------------------------------------
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+# ---------------------------------------------------------------------------
+# Security headers.
+#
+# The CSP is deliberately strict. Notes on each non-obvious entry:
+#   - 'unsafe-inline' for style-src: the app sets a handful of inline styles
+#     for layout; tightening this needs a nonce-based build step and is
+#     tracked as a follow-up in SECURITY.md.
+#   - Firebase needs its API hosts in connect-src, plus the reCAPTCHA frame
+#     for phone-auth and App Check.
+#   - No 'unsafe-eval' anywhere: Firebase v12 does not require it.
+# ---------------------------------------------------------------------------
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = """
+      default-src 'self'; \
+      script-src 'self' https://www.gstatic.com https://www.google.com https://apis.google.com; \
+      style-src 'self' 'unsafe-inline'; \
+      font-src 'self' data:; \
+      img-src 'self' data: blob: https://*.googleusercontent.com https://firebasestorage.googleapis.com; \
+      connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://firebaseinstallations.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com wss://*.firebaseio.com wss://*.firestore.googleapis.com https://content-firebaseappcheck.googleapis.com https://*.cloudfunctions.net https://*.run.app; \
+      frame-src https://www.google.com https://recaptcha.google.com https://*.firebaseapp.com; \
+      worker-src 'self' blob:; \
+      manifest-src 'self'; \
+      object-src 'none'; \
+      base-uri 'self'; \
+      form-action 'self'; \
+      frame-ancestors 'none'; \
+      upgrade-insecure-requests"""
+
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), magnetometer=(), accelerometer=(), gyroscope=(), interest-cohort=()"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    Cross-Origin-Opener-Policy = "same-origin-allow-popups"
+    Cross-Origin-Resource-Policy = "same-origin"
+    X-DNS-Prefetch-Control = "off"
+
+# Hashed build assets are immutable — cache them hard.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Source maps are emitted (sourcemap: 'hidden') so they can be uploaded to an
+# error tracker, but they must not be publicly fetchable — they contain the
+# full readable source. The 404 keeps them out of reach even though the files
+# exist in the deploy.
+[[redirects]]
+  from = "/assets/*.map"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[headers]]
+  for = "/*.woff2"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# HTML must always revalidate so a deploy is picked up immediately.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/llms.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/security.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+
+[[headers]]
+  for = "/.well-known/security.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Content-Type = "application/xml; charset=utf-8"
+    Cache-Control = "public, max-age=3600"

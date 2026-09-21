@@ -1,25 +1,278 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-IN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="KaamMilega — Find verified local skilled workers near you. Electricians, plumbers, tailors, photographers and more.">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🛠️%3C/text%3E%3C/svg%3E">
-<title>KaamMilega — Local Worker Finder</title>
-<link rel="stylesheet" href="style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- No maximum-scale / user-scalable=no: pinch zoom must stay available. -->
+
+<title>KaamMilega — Find Verified Local Workers Near You in India</title>
+<meta name="description" content="Find verified electricians, plumbers, carpenters, tailors and photographers near you. Call or WhatsApp local skilled workers directly. No commission, no middleman.">
+<meta name="keywords" content="local workers india, electrician near me, plumber near me, hire carpenter, tailor near me, skilled workers, kaam, majdoor, local services">
+<meta name="author" content="KaamMilega">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<link rel="canonical" href="https://kaam-milega.netlify.app/">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="KaamMilega">
+<meta property="og:locale" content="en_IN">
+<meta property="og:locale:alternate" content="hi_IN">
+<meta property="og:title" content="KaamMilega — Find Verified Local Workers Near You">
+<meta property="og:description" content="Search verified electricians, plumbers, carpenters and more in your city. Call or WhatsApp directly — no commission, no middleman.">
+<meta property="og:url" content="https://kaam-milega.netlify.app/">
+<meta property="og:image" content="https://kaam-milega.netlify.app/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="KaamMilega — find verified local skilled workers across India">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="KaamMilega — Find Verified Local Workers Near You">
+<meta name="twitter:description" content="Search verified electricians, plumbers, carpenters and more in your city. Call or WhatsApp directly.">
+<meta name="twitter:image" content="https://kaam-milega.netlify.app/og-image.png">
+<meta name="twitter:image:alt" content="KaamMilega — find verified local skilled workers across India">
+
+<!-- PWA / theme -->
+<meta name="theme-color" content="#047857" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1a15" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta name="application-name" content="KaamMilega">
+<meta name="apple-mobile-web-app-title" content="KaamMilega">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="/site.webmanifest">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+<!--
+  Fonts are self-hosted via @fontsource (bundled by Vite), so there is no
+  fonts.googleapis.com round-trip, no third-party CSP exception, and no
+  render-blocking external stylesheet.
+-->
+
+<!-- Structured data: organisation + site search -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://kaam-milega.netlify.app/#organization",
+      "name": "KaamMilega",
+      "url": "https://kaam-milega.netlify.app/",
+      "logo": "https://kaam-milega.netlify.app/icons/icon-512.png",
+      "description": "Marketplace connecting people with verified local skilled workers across India.",
+      "areaServed": { "@type": "Country", "name": "India" }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://kaam-milega.netlify.app/#website",
+      "url": "https://kaam-milega.netlify.app/",
+      "name": "KaamMilega",
+      "inLanguage": "en-IN",
+      "publisher": { "@id": "https://kaam-milega.netlify.app/#organization" },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://kaam-milega.netlify.app/?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "WebApplication",
+      "name": "KaamMilega",
+      "url": "https://kaam-milega.netlify.app/",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Any",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" }
+    }
+  ]
+}
+</script>
 </head>
 <body>
-<header><div class="top"><div class="logo-wrap"><div class="logo">Kaam<span>Milega</span></div><span class="flag-badge">🇮🇳 Made in India</span></div><button onclick="openLogin()">Login</button></div></header>
-<nav><button onclick="show('home')">Home</button><button onclick="show('workers')">Find Workers</button><button onclick="show('jobs')">Jobs</button><button onclick="show('profile')">My Profile</button></nav>
-<main>
-<section id="home" class="page active"><div class="hero"><div><p class="eyebrow">LOCAL WORK • FAST CONTACT</p><h1>Kaam chahiye? Worker chahiye?</h1><p>Nearby skilled workers ko search karo, profile dekho aur directly call/WhatsApp karo.</p><div class="search"><input id="homeSearch" placeholder="e.g. electrician, tailor, photographer"><button class="primary" onclick="searchWorkers()">Search</button></div></div><div class="hero-card">🛠️<b>Verified-style demo</b><small>Local preview — no backend required</small></div></div><div class="workforce-strip"><span>👷‍♂️</span><span>👷‍♀️</span><span>🔧</span><span>🧵</span><span>📷</span><span>🎨</span><span>💻</span><p>India's growing workforce, one call away</p></div><h2>Popular categories</h2><div class="grid" id="cats"></div><h2>Featured workers</h2><div class="grid" id="featured"></div></section>
-<section id="workers" class="page"><div class="section-head"><div><p class="eyebrow">WORKERS</p><h1>Find a skilled worker</h1></div><input id="workerSearch" oninput="renderWorkers()" placeholder="Search skill or name"></div><div class="chips" id="chips"></div><div class="grid" id="workerList"></div></section>
-<section id="jobs" class="page"><p class="eyebrow">JOBS</p><h1>Available work</h1><div id="jobList"></div></section>
-<section id="profile" class="page"><p class="eyebrow">PROFILE</p><h1>My Worker Profile</h1><div class="card profile-card"><div class="avatar">A</div><div><h2>Demo Worker</h2><p class="muted">Electrician • Ayodhya</p><span class="badge green">● Active</span></div></div><div class="form"><input id="pname" placeholder="Name"><input id="pskill" placeholder="Skill"><input id="pcity" placeholder="City"><input id="pphone" placeholder="Mobile"><textarea id="pbio" placeholder="About your work"></textarea><button class="primary" onclick="saveProfile()">Save Profile</button><p id="saveMsg" class="muted"></p></div></section>
+
+<!-- Skip link: first focusable element on the page. -->
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<!-- Screen-reader-only live region for route changes and result counts. -->
+<div id="sr-announcer" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<div id="offline-banner" class="offline-banner" role="status" hidden>
+  You are offline — showing saved results.
+</div>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="/" data-route="home" aria-label="KaamMilega home">
+      <span class="brand-mark" data-icon="hammer" aria-hidden="true"></span>
+      <span>Kaam<em>Milega</em></span>
+    </a>
+
+    <nav class="primary-nav" aria-label="Main">
+      <a class="nav-link" href="/" data-route="home"><span data-icon="home"></span>Home</a>
+      <a class="nav-link" href="/workers" data-route="workers"><span data-icon="users"></span>Find Workers</a>
+      <a class="nav-link" href="/jobs" data-route="jobs"><span data-icon="briefcase"></span>Jobs</a>
+      <a class="nav-link" href="/profile" data-route="profile"><span data-icon="user"></span>My Profile</a>
+    </nav>
+
+    <div class="header-actions">
+      <button type="button" class="btn btn-ghost btn-icon" id="theme-toggle"
+              aria-label="Switch to dark theme" title="Switch theme"></button>
+      <button type="button" class="btn btn-primary" id="auth-button">
+        <span data-icon="logIn"></span><span class="btn-label">Login</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+  <div class="container">
+    <div id="view" aria-live="polite" aria-busy="false"></div>
+  </div>
 </main>
-<div id="modal" class="modal hidden"><div class="modal-box"><button class="close" onclick="closeLogin()">×</button><h2>Login</h2><p class="muted">Demo login — no server required.</p><input placeholder="Mobile / Email"><input type="password" placeholder="Password"><button class="primary full" onclick="demoLogin()">Login</button><p id="loginMsg" class="muted"></p></div></div>
-<footer>© 2026 KaamMilega • Demo MVP</footer>
-<script src="script.js"></script>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="/" data-route="home">
+          <span class="brand-mark" data-icon="hammer" aria-hidden="true"></span>
+          <span>Kaam<em>Milega</em></span>
+        </a>
+        <p>Connecting people with verified local skilled workers across India. No commission, no middleman.</p>
+      </div>
+
+      <div class="footer-col">
+        <h3>Find work</h3>
+        <ul>
+          <li><a href="/workers/electrician" data-route="workers">Electricians</a></li>
+          <li><a href="/workers/plumber" data-route="workers">Plumbers</a></li>
+          <li><a href="/workers/carpenter" data-route="workers">Carpenters</a></li>
+          <li><a href="/workers/tailor" data-route="workers">Tailors</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h3>Company</h3>
+        <ul>
+          <li><a href="/about" data-route="about">About</a></li>
+          <li><a href="/jobs" data-route="jobs">Browse jobs</a></li>
+          <li><a href="https://github.com/shivanshvishwakrma869-ctrl/kaam-milega" rel="noopener noreferrer">GitHub</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h3>Legal</h3>
+        <ul>
+          <li><a href="/privacy" data-route="privacy">Privacy policy</a></li>
+          <li><a href="/terms" data-route="terms">Terms of use</a></li>
+          <li><a href="/security.txt">Security</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; <span id="year">2026</span> KaamMilega. Built in India.</p>
+      <p id="build-mode" class="text-sm"></p>
+    </div>
+  </div>
+</footer>
+
+<!-- Mobile bottom navigation: 4 items, within the 5-item guideline. -->
+<nav class="bottom-nav" aria-label="Main mobile">
+  <a href="/" data-route="home"><span data-icon="home"></span>Home</a>
+  <a href="/workers" data-route="workers"><span data-icon="users"></span>Workers</a>
+  <a href="/jobs" data-route="jobs"><span data-icon="briefcase"></span>Jobs</a>
+  <a href="/profile" data-route="profile"><span data-icon="user"></span>Profile</a>
+</nav>
+
+<!-- Toasts: polite live region, positioned clear of the bottom nav. -->
+<div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="false"></div>
+
+<!-- Login dialog: native <dialog> gives focus trapping + Esc for free. -->
+<dialog class="modal" id="auth-dialog" aria-labelledby="auth-title">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <h2 id="auth-title">Login to KaamMilega</h2>
+        <p class="muted text-sm" id="auth-subtitle">We will send a 6-digit code to your mobile.</p>
+      </div>
+      <button type="button" class="modal-close" data-close-dialog aria-label="Close login dialog">
+        <span data-icon="x"></span>
+      </button>
+    </div>
+
+    <form id="auth-form" novalidate>
+      <div class="error-summary" data-error-summary tabindex="-1" role="alert" hidden></div>
+
+      <div class="form" style="gap:var(--space-4)">
+        <div class="field" data-step="phone">
+          <label for="auth-phone">Mobile number <span class="required" aria-hidden="true">*</span></label>
+          <input class="input" id="auth-phone" name="phone" type="tel" inputmode="numeric"
+                 autocomplete="tel-national" maxlength="10" required
+                 placeholder="98765 43210" aria-describedby="auth-phone-hint">
+          <p class="hint" id="auth-phone-hint">10-digit Indian mobile number, without +91.</p>
+          <p class="field-error" data-error-for="phone" role="alert"></p>
+        </div>
+
+        <div class="field" data-step="otp" hidden>
+          <label for="auth-otp">Verification code <span class="required" aria-hidden="true">*</span></label>
+          <input class="input" id="auth-otp" name="otp" type="text" inputmode="numeric"
+                 autocomplete="one-time-code" maxlength="6"
+                 placeholder="123456" aria-describedby="auth-otp-hint">
+          <p class="hint" id="auth-otp-hint">Enter the 6-digit code we sent you.</p>
+          <p class="field-error" data-error-for="otp" role="alert"></p>
+        </div>
+
+        <div id="recaptcha-host"></div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="auth-submit">
+          <span class="btn-label">Send code</span>
+        </button>
+
+        <button type="button" class="btn btn-ghost btn-block" id="auth-back" hidden>
+          Use a different number
+        </button>
+
+        <p class="hint">
+          By continuing you agree to our <a href="/terms" data-route="terms">Terms</a>
+          and <a href="/privacy" data-route="privacy">Privacy policy</a>.
+        </p>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<!-- Cookie / analytics consent: analytics only loads after an explicit opt-in. -->
+<dialog class="modal" id="consent-dialog" aria-labelledby="consent-title">
+  <div class="modal-box">
+    <h2 id="consent-title">Help us improve KaamMilega?</h2>
+    <p class="text-sm muted">
+      We would like to use analytics cookies to understand which trades and cities
+      people search for. Nothing is collected unless you agree, and we never sell
+      your data. Essential cookies for login always stay on.
+    </p>
+    <div style="display:flex;gap:var(--space-3);flex-wrap:wrap">
+      <button type="button" class="btn btn-primary" id="consent-accept" data-autofocus>Accept analytics</button>
+      <button type="button" class="btn btn-secondary" id="consent-reject">Reject non-essential</button>
+    </div>
+  </div>
+</dialog>
+
+<noscript>
+  <div style="padding:2rem;max-width:44rem;margin:0 auto;font-family:system-ui,sans-serif">
+    <h1>JavaScript is required</h1>
+    <p>KaamMilega needs JavaScript to search workers and jobs. Please enable it, or
+       call our helpline to be matched with a worker manually.</p>
+  </div>
+</noscript>
+
+<script type="module" src="/src/main.js"></script>
 </body>
 </html>
