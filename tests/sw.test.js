@@ -12,11 +12,24 @@
  * HTML files, visiting /about then going offline served the About page at '/'.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import vm from 'node:vm';
 
-const SW_SOURCE = readFileSync(resolve(__dirname, '../public/sw.js'), 'utf8');
+/**
+ * Prefer the BUILT worker: postbuild substitutes the prerendered route list
+ * into it, so dist/sw.js is what actually ships. Fall back to the source with
+ * the placeholder filled in, so these tests still run before a build.
+ */
+const BUILT_SW = resolve(__dirname, '../dist/sw.js');
+const SRC_SW = resolve(__dirname, '../public/sw.js');
+const usingBuilt = existsSync(BUILT_SW);
+const SW_SOURCE = usingBuilt
+  ? readFileSync(BUILT_SW, 'utf8')
+  : readFileSync(SRC_SW, 'utf8').replaceAll(
+      '__PRERENDERED_ROUTES__',
+      JSON.stringify(['/', '/workers', '/jobs', '/about', '/privacy', '/terms']),
+    );
 
 const ORIGIN = 'https://kaam-milega.netlify.app';
 

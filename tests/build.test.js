@@ -9,7 +9,7 @@
  * pointing at the wrong route.
  */
 import { describe, it, expect } from 'vitest';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { WORKERS, JOBS, REVIEWS } from '../src/data/seed.js';
 import { CATEGORIES } from '../src/data/categories.js';
@@ -396,5 +396,41 @@ describe.runIf(built)('on-page SEO structure', () => {
       expect(titles.has(t), `duplicate title "${t}" in ${p} and ${titles.get(t)}`).toBe(false);
       titles.set(t, p);
     }
+  });
+});
+
+describe.runIf(built)('build hardening', () => {
+  it('does not advertise source maps to the browser', () => {
+    // sourcemap:'hidden' keeps the .map files for an error tracker but drops
+    // the //# sourceMappingURL comment, so visitors are not handed the full
+    // readable source (3.4 MB of it) from devtools.
+    for (const f of readdirSync(resolve(dist, 'assets')).filter((n) => n.endsWith('.js'))) {
+      const js = readFileSync(resolve(dist, 'assets', f), 'utf8');
+      expect(js, f).not.toMatch(/sourceMappingURL/);
+    }
+  });
+
+  it('blocks source maps at the edge as well', () => {
+    const toml = readFileSync(resolve(__dirname, '../netlify.toml'), 'utf8');
+    expect(toml).toMatch(/from = "\/assets\/\*\.map"[\s\S]{0,120}status = 404/);
+  });
+
+  it('injects the real prerendered route list into the service worker', () => {
+    const sw = readFileSync(resolve(dist, 'sw.js'), 'utf8');
+    // A leftover placeholder would be a ReferenceError at install time,
+    // silently disabling offline support for everyone.
+    expect(sw).not.toContain('__PRERENDERED_ROUTES__');
+    const shell = sw.match(/const SHELL = \[([\s\S]*?)\];/)[1];
+    for (const c of CATEGORIES) {
+      expect(shell, c.slug).toContain(`/workers/${c.slug}`);
+    }
+    for (const r of ['/', '/workers', '/jobs', '/about', '/privacy', '/terms']) {
+      expect(shell, r).toContain(`"${r}"`);
+    }
+  });
+
+  it('the generated service worker is syntactically valid', () => {
+    const sw = readFileSync(resolve(dist, 'sw.js'), 'utf8');
+    expect(() => new Function(sw)).not.toThrow();
   });
 });

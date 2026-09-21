@@ -74,6 +74,16 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# Source maps are emitted (sourcemap: 'hidden') so they can be uploaded to an
+# error tracker, but they must not be publicly fetchable — they contain the
+# full readable source. The 404 keeps them out of reach even though the files
+# exist in the deploy.
+[[redirects]]
+  from = "/assets/*.map"
+  to = "/index.html"
+  status = 404
+  force = true
+
 [[headers]]
   for = "/*.woff2"
   [headers.values]

@@ -20,7 +20,7 @@ serves the seed data in `src/data/seed.js` so the whole UI is explorable
 immediately. A footer notice makes the mode obvious.
 
 ```bash
-npm run verify       # lint + 270 tests + production build + smoke test
+npm run verify       # lint + 280 tests + production build + smoke test
 ```
 
 ## Scripts
@@ -31,7 +31,7 @@ npm run verify       # lint + 270 tests + production build + smoke test
 | `npm run build` | Sitemap → bundle → prerender 18 routes → verify artefacts |
 | `npm run preview` | Serve the production build locally |
 | `npm test` | 190 unit + integration + build-contract tests |
-| `npm run smoke` | Boot the built bundle in jsdom, assert 27 runtime checks |
+| `npm run smoke` | Boot the built bundle in jsdom, assert 29 runtime checks |
 | `npm run lint` | ESLint over app, functions, scripts and tests |
 | `npm run verify` | All of the above — run this before pushing |
 | `npm run emulators` | Firebase emulator suite (auth, firestore, functions) |

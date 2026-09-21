@@ -137,14 +137,19 @@ function updateHead(route, path) {
   setMeta('meta[name="twitter:title"]', 'content', document.title);
   setMeta('meta[name="twitter:description"]', 'content', desc);
 
+  // An unknown path has no route. Never give it a self-referencing canonical:
+  // that would tell search engines the 404 is a legitimate page at that URL.
+  // Point at the home page instead and stop advertising a bogus og:url.
+  const known = Boolean(route);
+  const href = new URL(known ? path : '/', location.origin).href;
   const canonical = document.querySelector('link[rel="canonical"]');
-  if (canonical) canonical.href = new URL(path, location.origin).href;
-  setMeta('meta[property="og:url"]', 'content', new URL(path, location.origin).href);
+  if (canonical) canonical.href = href;
+  setMeta('meta[property="og:url"]', 'content', href);
 
-  // Keep private pages out of the index.
+  // Keep private pages — and soft 404s — out of the index.
   const robots = document.querySelector('meta[name="robots"]');
   if (robots) {
-    robots.content = route?.noindex
+    robots.content = !known || route.noindex
       ? 'noindex, nofollow'
       : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
   }

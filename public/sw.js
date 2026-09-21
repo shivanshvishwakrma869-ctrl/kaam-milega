@@ -13,13 +13,13 @@ const ASSET_CACHE = `km-assets-${VERSION}`;
 
 // Precache the prerendered routes so a first offline visit to any of them
 // works, not just the home page.
+//
+// The placeholder below is substituted at build time by
+// scripts/postbuild.mjs with the routes prerender actually produced.
+// Hand-maintaining this list meant it silently went stale the moment new
+// routes were added.
 const SHELL = [
-  '/',
-  '/workers',
-  '/jobs',
-  '/about',
-  '/privacy',
-  '/terms',
+  ...__PRERENDERED_ROUTES__,
   '/site.webmanifest',
   '/favicon.svg',
 ];

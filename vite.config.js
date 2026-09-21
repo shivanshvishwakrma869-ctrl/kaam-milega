@@ -20,7 +20,11 @@ export default defineConfig({
     target: 'es2022',
     outDir: 'dist',
     assetsDir: 'assets',
-    sourcemap: true,
+    // 'hidden' emits the .map files (so they can be uploaded to an error
+    // tracker) but omits the //# sourceMappingURL comment, so browsers and
+    // casual visitors are not handed 3.4 MB of readable source. Netlify
+    // additionally blocks *.map from being served — see netlify.toml.
+    sourcemap: 'hidden',
     cssCodeSplit: true,
     reportCompressedSize: true,
     // Firebase is large; warn only above a realistic threshold.

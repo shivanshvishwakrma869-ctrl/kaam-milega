@@ -207,6 +207,17 @@ if (workersLink) {
   const catCards = document.querySelectorAll('.worker-card').length;
   check('category page filters the directory',
     catCards > 0 && catCards < 9, `${catCards} of 9 workers`);
+
+  // An unknown URL must not present itself as a real, indexable page.
+  window.dispatchEvent(
+    new window.CustomEvent('km:navigate', { detail: { url: '/no-such-page' } }),
+  );
+  await new Promise((r) => setTimeout(r, 400));
+  const robots = document.querySelector('meta[name="robots"]')?.content ?? '';
+  const canon = document.querySelector('link[rel="canonical"]')?.href ?? '';
+  check('unknown route is marked noindex', robots.includes('noindex'), robots);
+  check('unknown route does not self-canonicalise',
+    !canon.includes('no-such-page'), canon);
 } else {
   check('workers nav link present', false);
 }
