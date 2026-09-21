@@ -1,0 +1,12 @@
+# KaamMilega — security contact
+# Canonical copy lives at /.well-known/security.txt (RFC 9116)
+
+Contact: mailto:security@kaam-milega.example
+Expires: 2027-09-21T00:00:00.000Z
+Preferred-Languages: en, hi
+Canonical: https://kaam-milega.netlify.app/.well-known/security.txt
+Policy: https://github.com/shivanshvishwakrma869-ctrl/kaam-milega/blob/main/SECURITY.md
+
+# Please report vulnerabilities privately first. We aim to acknowledge within
+# 72 hours. Do not run automated scanners against production, and never access
+# or modify another user's data while testing.

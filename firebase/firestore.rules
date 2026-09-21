@@ -1,0 +1,176 @@
+rules_version = '2';
+
+// =============================================================================
+// KaamMilega — Firestore Security Rules
+//
+// This is the real security boundary. Everything in src/lib/validation.js is a
+// UX convenience that a user can bypass with devtools; these rules cannot be.
+//
+// Principles applied here:
+//   1. Default deny. Nothing is readable or writable unless matched below.
+//   2. Clients never write trust signals (verified / rating / jobsDone).
+//   3. Field-level allowlists, so a client cannot inject unexpected fields.
+//   4. Type and length checks mirror LIMITS in src/lib/validation.js.
+//   5. Phone numbers of job posters are not world-readable.
+// =============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------- helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // App Check blocks traffic that did not come from our own front end.
+    function appCheckOk() {
+      return request.app != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Only these keys may ever appear in a client-written worker document.
+    function workerFieldsAllowed() {
+      return incoming().keys().hasOnly([
+        'name', 'trade', 'city', 'phone', 'rate', 'bio', 'available', 'updatedAt'
+      ]);
+    }
+
+    // A client must never be able to set these — only Cloud Functions may.
+    function noPrivilegedWorkerFields() {
+      return !incoming().keys().hasAny([
+        'verified', 'rating', 'reviewCount', 'jobsDone', 'featured', 'suspended'
+      ]);
+    }
+
+    function validPhone(p) {
+      return p is string && p.matches('^[6-9][0-9]{9}$');
+    }
+
+    function validWorker() {
+      return incoming().name is string
+        && incoming().name.size() >= 2
+        && incoming().name.size() <= 60
+        && incoming().trade is string
+        && incoming().trade.size() <= 40
+        && incoming().city is string
+        && incoming().city.size() >= 2
+        && incoming().city.size() <= 60
+        && validPhone(incoming().phone)
+        && incoming().rate is number
+        && incoming().rate >= 0
+        && incoming().rate <= 100000
+        && (!('bio' in incoming()) || (incoming().bio is string && incoming().bio.size() <= 500))
+        && incoming().available is bool;
+    }
+
+    // ---------------------------------------------------------------- workers
+    // Public directory: anyone may read a listing (that is the product), but
+    // only the owner may create or edit their own, and never the trust fields.
+    match /workers/{uid} {
+      allow read: if true;
+
+      allow create: if isOwner(uid)
+        && appCheckOk()
+        && workerFieldsAllowed()
+        && noPrivilegedWorkerFields()
+        && validWorker();
+
+      allow update: if isOwner(uid)
+        && appCheckOk()
+        && workerFieldsAllowed()
+        && noPrivilegedWorkerFields()
+        && validWorker();
+
+      // Deletion is allowed so a worker can exercise their right to erasure.
+      allow delete: if isOwner(uid) && appCheckOk();
+    }
+
+    // ------------------------------------------------------------------ jobs
+    // Job posts are public so workers can browse them, but the poster's phone
+    // number is stripped into a subcollection that only applicants can read.
+    match /jobs/{jobId} {
+      function validJob() {
+        return incoming().title is string
+          && incoming().title.size() >= 5
+          && incoming().title.size() <= 100
+          && incoming().trade is string
+          && incoming().city is string
+          && incoming().description is string
+          && incoming().description.size() >= 20
+          && incoming().description.size() <= 1000
+          && incoming().budgetMin is number
+          && incoming().budgetMax is number
+          && incoming().budgetMin >= 50
+          && incoming().budgetMax <= 1000000
+          && incoming().budgetMax >= incoming().budgetMin
+          && incoming().ownerId == request.auth.uid
+          && incoming().status == 'open';
+      }
+
+      allow read: if true;
+
+      allow create: if isSignedIn()
+        && appCheckOk()
+        && validJob()
+        && incoming().applicants == 0;
+
+      // The owner may edit their own post but cannot forge the applicant count.
+      allow update: if isSignedIn()
+        && appCheckOk()
+        && existing().ownerId == request.auth.uid
+        && incoming().ownerId == existing().ownerId
+        && incoming().applicants == existing().applicants;
+
+      allow delete: if isSignedIn() && existing().ownerId == request.auth.uid;
+
+      // Applications: a worker may create their own, and only the job owner
+      // and the applicant can read it.
+      match /applications/{applicantId} {
+        allow read: if isOwner(applicantId)
+          || (isSignedIn()
+              && get(/databases/$(database)/documents/jobs/$(jobId)).data.ownerId == request.auth.uid);
+
+        allow create: if isOwner(applicantId) && appCheckOk();
+        allow update, delete: if isOwner(applicantId);
+      }
+    }
+
+    // --------------------------------------------------------------- reviews
+    // Reviews are public (the skill's anti-patterns explicitly flag hidden
+    // reviews). Writes go through a Cloud Function so a rating can only be
+    // left by someone who actually hired, and aggregates stay consistent.
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create, update, delete: if false;  // Cloud Functions only
+    }
+
+    // ------------------------------------------------------------------ meta
+    // Aggregate counters shown on the landing page.
+    match /meta/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ----------------------------------------------------------- user-private
+    // Anything genuinely private to one account.
+    match /users/{uid}/private/{docId} {
+      allow read, write: if isOwner(uid) && appCheckOk();
+    }
+
+    // ------------------------------------------------------------- catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "kaam-milega",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "KaamMilega — find verified local skilled workers across India.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "node scripts/prebuild.mjs && vite build && node scripts/prerender.mjs && node scripts/postbuild.mjs",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .js,.mjs",
+    "test": "vitest run",
+    "smoke": "npm run build && node scripts/smoke.mjs",
+    "verify": "npm run lint && npm run test && npm run smoke",
+    "test:watch": "vitest",
+    "emulators": "firebase emulators:start"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "firebase": "^12.19.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.0",
+    "jsdom": "^28.0.0",
+    "vite": "^8.3.0",
+    "vitest": "^4.0.10"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

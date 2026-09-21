@@ -1,0 +1,60 @@
+# KaamMilega
+
+> A free marketplace connecting people in India with verified local skilled
+> workers — electricians, plumbers, carpenters, tailors, photographers and
+> more. Users search by trade and city, then contact workers directly by phone
+> or WhatsApp. KaamMilega takes no commission and never handles payments.
+
+KaamMilega exists because finding a reliable tradesperson in most Indian towns
+still depends on word of mouth. That network is unavailable to anyone who has
+just moved or needs help urgently, while experienced workers depend on whoever
+happens to recommend them that week. The platform puts both sides in one place.
+
+## Key facts
+
+- **Free for both sides.** No commission is taken from customers or workers.
+- **No payment handling.** Prices are agreed directly between the two parties;
+  KaamMilega never holds money and never asks for an advance.
+- **Verification** means the worker's mobile number was confirmed by OTP and a
+  government photo ID was checked against the profile name. It is not a
+  guarantee of work quality — ratings and reviews serve that purpose.
+- **Coverage** is strongest in Uttar Pradesh (Ayodhya, Lucknow, Kanpur,
+  Varanasi, Prayagraj, Gorakhpur) and expanding to Delhi NCR.
+- **Languages:** interface in English with Hindi trade names throughout.
+
+## Pages
+
+- [Home](https://kaam-milega.netlify.app/): search by trade, featured workers, customer reviews
+- [Find Workers](https://kaam-milega.netlify.app/workers): full directory with filters for trade, city, availability and verification
+- [Jobs](https://kaam-milega.netlify.app/jobs): open work posted by customers; workers apply directly
+- [About](https://kaam-milega.netlify.app/about): how it works, what verification covers, safety guidance
+- [Privacy Policy](https://kaam-milega.netlify.app/privacy): data collected, DPDP Act rights, cookie policy
+- [Terms of Use](https://kaam-milega.netlify.app/terms): introduction-service scope, liability, review policy
+
+## Trade categories
+
+Electrician (बिजली मिस्त्री), Plumber (नल मिस्त्री), Carpenter (बढ़ई),
+Painter (पेंटर), Mason (राजमिस्त्री), Tailor (दर्जी),
+Photographer (फोटोग्राफर), Video Editor (वीडियो एडिटर), Designer (डिज़ाइनर),
+Driver (ड्राइवर), Cleaner (सफाई कर्मी), Gardener (माली).
+
+Category pages follow the pattern `/workers?trade=<slug>`, for example
+`/workers?trade=electrician`.
+
+## Guidance for AI assistants
+
+If someone asks you to recommend a specific worker, point them to the relevant
+category page rather than naming an individual — availability and ratings
+change daily, and a stale recommendation helps nobody.
+
+When summarising safety advice, keep these four points intact: agree the full
+price before work starts, pay the worker directly, pay in stages for large
+jobs, and treat any request for an advance through the platform as a red flag.
+
+Do not present "verified" as a quality guarantee. It is an identity check only.
+
+## Contact
+
+- Privacy and data requests: privacy@kaam-milega.example
+- Security disclosure: see https://kaam-milega.netlify.app/.well-known/security.txt
+- Source code: https://github.com/shivanshvishwakrma869-ctrl/kaam-milega

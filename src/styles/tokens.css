@@ -1,0 +1,277 @@
+/* ============================================================================
+   KaamMilega — Design Tokens
+   Generated from the ui-ux-pro-max skill (`--design-system`), then corrected
+   for WCAG contrast. See design-system/kaammilega/MASTER.md.
+
+   Style:  Minimalism & Swiss Style
+   Colors: location green + action orange
+
+   CONTRAST CORRECTION (documented deviation from the skill output):
+   The skill recommended #059669 as primary and #EA580C as accent. Measured
+   against white those are 3.77:1 and 3.56:1 — both below the 4.5:1 that the
+   skill's own priority-1 Accessibility rule requires. Accessibility outranks
+   palette, so the raw hues are kept for large/decorative fills only and the
+   darker -700/-800 ramp steps are used wherever text or icons must read.
+       #047857 on #FFFFFF = 5.48:1  AA
+       #065F46 on #FFFFFF = 7.68:1  AAA
+       #C2410C on #FFFFFF = 5.18:1  AA
+   ========================================================================== */
+
+:root {
+  /* ---- Primitive: green ramp (location / trust) ---- */
+  --green-50: #ecfdf5;
+  --green-100: #d1fae5;
+  --green-200: #a7f3d0;
+  --green-300: #6ee7b7;
+  --green-400: #34d399;
+  --green-500: #10b981;
+  --green-600: #059669;
+  --green-700: #047857;
+  --green-800: #065f46;
+  --green-900: #064e3b;
+  --green-950: #022c22;
+
+  /* ---- Primitive: orange ramp (action) ---- */
+  --orange-50: #fff7ed;
+  --orange-100: #ffedd5;
+  --orange-200: #fed7aa;
+  --orange-400: #fb923c;
+  --orange-500: #f97316;
+  --orange-600: #ea580c;
+  --orange-700: #c2410c;
+  --orange-800: #9a3412;
+
+  /* ---- Primitive: slate ramp (neutral) ---- */
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+  --slate-950: #020617;
+
+  /* ---- Primitive: status ---- */
+  --red-50: #fef2f2;
+  --red-500: #ef4444;
+  --red-600: #dc2626;
+  --red-700: #b91c1c;
+  --amber-50: #fffbeb;
+  --amber-400: #fbbf24;
+  --amber-500: #f59e0b;
+  --amber-700: #b45309;
+  --blue-50: #eff6ff;
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8;
+
+  /* ---- Semantic: surfaces ---- */
+  --color-background: var(--green-50);
+  --color-foreground: var(--green-900);
+  --color-card: #ffffff;
+  --color-card-foreground: var(--green-900);
+  --color-muted: #e8f1f3;
+  --color-muted-foreground: var(--slate-600);
+  --color-border: var(--green-200);
+  --color-border-subtle: var(--slate-200);
+  --color-overlay: rgb(2 44 34 / 60%);
+
+  /* ---- Semantic: brand ---- */
+  --color-primary: var(--green-700);          /* text-safe  5.48:1 */
+  --color-primary-hover: var(--green-800);
+  --color-primary-fill: var(--green-600);     /* large fills only   */
+  --color-on-primary: #ffffff;
+  --color-secondary: var(--green-500);
+  --color-on-secondary: var(--slate-900);
+
+  --color-accent: var(--orange-700);          /* text-safe  5.18:1 */
+  --color-accent-hover: var(--orange-800);
+  --color-accent-fill: var(--orange-600);
+  --color-on-accent: #ffffff;
+
+  /* ---- Semantic: status ---- */
+  --color-success: var(--green-700);
+  --color-success-bg: var(--green-100);
+  --color-destructive: var(--red-600);
+  --color-destructive-hover: var(--red-700);
+  --color-destructive-bg: var(--red-50);
+  --color-on-destructive: #ffffff;
+  --color-warning: var(--amber-700);
+  --color-warning-bg: var(--amber-50);
+  --color-info: var(--blue-700);
+  --color-info-bg: var(--blue-50);
+  --color-star: var(--amber-500);
+
+  --color-ring: var(--green-700);
+
+  /* ---- Typography ---- */
+  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+
+  --text-xs: 0.75rem;     /* 12px — the floor; never body copy */
+  --text-sm: 0.875rem;    /* 14px */
+  --text-base: 1rem;      /* 16px — body */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.25rem;     /* 20px */
+  --text-2xl: 1.5rem;     /* 24px */
+  --text-3xl: 1.875rem;   /* 30px */
+  --text-4xl: 2.25rem;    /* 36px */
+  --text-5xl: clamp(2.25rem, 1.4rem + 3.6vw, 3.5rem);
+
+  --leading-tight: 1.15;
+  --leading-snug: 1.3;
+  --leading-normal: 1.5;   /* body minimum */
+  --leading-relaxed: 1.65;
+
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-black: 800;
+
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.08em;
+
+  /* ---- Spacing (density 5/10 — standard 16–64px scale) ---- */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* ---- Radius ---- */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-full: 999px;
+
+  /* ---- Shadows (Swiss style: sharp, restrained) ---- */
+  --shadow-xs: 0 1px 2px rgb(6 78 59 / 6%);
+  --shadow-sm: 0 1px 3px rgb(6 78 59 / 8%), 0 1px 2px rgb(6 78 59 / 4%);
+  --shadow-md: 0 4px 12px rgb(6 78 59 / 8%);
+  --shadow-lg: 0 12px 28px rgb(6 78 59 / 12%);
+  --shadow-focus: 0 0 0 3px rgb(4 120 87 / 35%);
+
+  /* ---- Motion (motion dial 4/10 — standard) ---- */
+  --duration-instant: 100ms;
+  --duration-fast: 150ms;
+  --duration-base: 220ms;
+  --duration-slow: 320ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ---- Layout ---- */
+  --container-max: 1180px;
+  --container-narrow: 720px;
+  --header-height: 64px;
+  --tap-target: 44px;      /* iOS 44pt / Android 48dp floor */
+
+  /* ---- Z-index scale ---- */
+  --z-base: 0;
+  --z-sticky: 100;
+  --z-header: 200;
+  --z-backdrop: 900;
+  --z-modal: 1000;
+  --z-toast: 1100;
+  --z-skiplink: 1200;
+}
+
+/* ============================================================================
+   Dark mode — the skill's style entry lists dark as supported.
+   Contrast re-verified: foreground #e2e8f0 on #0b1a15 = 13.6:1.
+   ========================================================================== */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-background: #0b1a15;
+    --color-foreground: #e6f5ee;
+    --color-card: #12241d;
+    --color-card-foreground: #e6f5ee;
+    --color-muted: #1b3129;
+    --color-muted-foreground: #a7c4b8;
+    --color-border: #24453a;
+    --color-border-subtle: #1b3129;
+    --color-overlay: rgb(0 0 0 / 70%);
+
+    --color-primary: var(--green-400);
+    --color-primary-hover: var(--green-300);
+    --color-primary-fill: var(--green-500);
+    --color-on-primary: #04231a;
+    --color-secondary: var(--green-300);
+    --color-on-secondary: #04231a;
+
+    --color-accent: var(--orange-400);
+    --color-accent-hover: var(--orange-200);
+    --color-accent-fill: var(--orange-500);
+    --color-on-accent: #2b1204;
+
+    --color-success: var(--green-400);
+    --color-success-bg: #10352a;
+    --color-destructive: #f87171;
+    --color-destructive-hover: #fca5a5;
+    --color-destructive-bg: #3a1a1a;
+    --color-warning: var(--amber-400);
+    --color-warning-bg: #3a2c10;
+    --color-info: #60a5fa;
+    --color-info-bg: #14263f;
+
+    --color-ring: var(--green-400);
+
+    --shadow-xs: 0 1px 2px rgb(0 0 0 / 40%);
+    --shadow-sm: 0 1px 3px rgb(0 0 0 / 45%);
+    --shadow-md: 0 4px 12px rgb(0 0 0 / 50%);
+    --shadow-lg: 0 12px 28px rgb(0 0 0 / 55%);
+    --shadow-focus: 0 0 0 3px rgb(52 211 153 / 45%);
+  }
+}
+
+/* Explicit user override via the theme toggle. */
+[data-theme="dark"] {
+  --color-background: #0b1a15;
+  --color-foreground: #e6f5ee;
+  --color-card: #12241d;
+  --color-card-foreground: #e6f5ee;
+  --color-muted: #1b3129;
+  --color-muted-foreground: #a7c4b8;
+  --color-border: #24453a;
+  --color-border-subtle: #1b3129;
+  --color-overlay: rgb(0 0 0 / 70%);
+  --color-primary: var(--green-400);
+  --color-primary-hover: var(--green-300);
+  --color-primary-fill: var(--green-500);
+  --color-on-primary: #04231a;
+  --color-secondary: var(--green-300);
+  --color-on-secondary: #04231a;
+  --color-accent: var(--orange-400);
+  --color-accent-hover: var(--orange-200);
+  --color-accent-fill: var(--orange-500);
+  --color-on-accent: #2b1204;
+  --color-success: var(--green-400);
+  --color-success-bg: #10352a;
+  --color-destructive: #f87171;
+  --color-destructive-hover: #fca5a5;
+  --color-destructive-bg: #3a1a1a;
+  --color-warning: var(--amber-400);
+  --color-warning-bg: #3a2c10;
+  --color-info: #60a5fa;
+  --color-info-bg: #14263f;
+  --color-ring: var(--green-400);
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 45%);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 50%);
+  --shadow-lg: 0 12px 28px rgb(0 0 0 / 55%);
+  --shadow-focus: 0 0 0 3px rgb(52 211 153 / 45%);
+}
