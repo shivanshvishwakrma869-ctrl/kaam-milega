@@ -7,11 +7,22 @@
  * no auth state.
  */
 
-const VERSION = 'v2';
+const VERSION = 'v3';
 const SHELL_CACHE = `km-shell-${VERSION}`;
 const ASSET_CACHE = `km-assets-${VERSION}`;
 
-const SHELL = ['/', '/index.html', '/site.webmanifest', '/favicon.svg'];
+// Precache the prerendered routes so a first offline visit to any of them
+// works, not just the home page.
+const SHELL = [
+  '/',
+  '/workers',
+  '/jobs',
+  '/about',
+  '/privacy',
+  '/terms',
+  '/site.webmanifest',
+  '/favicon.svg',
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -61,18 +72,37 @@ self.addEventListener('fetch', (event) => {
   if (NEVER_CACHE.some((host) => url.href.includes(host))) return;
 
   // Navigation requests: network-first so a deploy is picked up immediately,
-  // falling back to the cached shell when offline.
+  // falling back to cache when offline.
+  //
+  // Each route is cached under its OWN url. The build prerenders /, /workers,
+  // /jobs, /about, /privacy and /terms into distinct HTML files with different
+  // titles and canonicals — caching them all under one '/index.html' key would
+  // mean that after visiting /about, an offline load of / serves the About
+  // page. Falling back to '/' (the app shell) only happens when the requested
+  // route has never been visited; the SPA router then renders the right view.
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(SHELL_CACHE).then((c) => c.put('/index.html', copy));
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(SHELL_CACHE).then((c) => c.put(request, copy));
+          }
           return response;
         })
-        .catch(() =>
-          caches.match('/index.html').then((cached) => cached || fetch(request)),
-        ),
+        .catch(async () => {
+          const exact = await caches.match(request, { ignoreSearch: true });
+          if (exact) return exact;
+          const shell = await caches.match('/');
+          if (shell) return shell;
+          return new Response(
+            '<!doctype html><meta charset="utf-8"><title>Offline</title>' +
+              '<div style="font-family:system-ui;padding:2rem;max-width:34rem;margin:auto">' +
+              '<h1>You are offline</h1><p>This page has not been saved for offline use. ' +
+              'Reconnect and try again.</p></div>',
+            { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } },
+          );
+        }),
     );
     return;
   }

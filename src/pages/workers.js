@@ -5,10 +5,10 @@
 import { icon, tradeIcon } from '../lib/icons.js';
 import { escapeHTML, telURL, whatsappURL, rateLimit } from '../lib/security.js';
 import { CATEGORIES, CITIES, categoryName } from '../data/categories.js';
-import { listWorkers } from '../lib/api.js';
+import { listWorkers, listReviews } from '../lib/api.js';
 import {
   skeletonCards, initials, formatINR, emptyState, debounce,
-  toast,
+  toast, starRow, timeAgo,
 } from '../lib/ui.js';
 
 /** Shared worker card — also used by the home page. */
@@ -57,6 +57,19 @@ export function workerCard(w) {
         <span class="badge badge-neutral">${escapeHTML(String(w.experienceYears))} yrs experience</span>
       </div>
 
+      ${w.reviewCount > 0
+        ? `<details class="worker-reviews" data-reviews-for="${escapeHTML(w.id)}">
+             <summary>
+               ${icon('star', { size: 15 })}
+               <span>Read ${escapeHTML(String(w.reviewCount))} review${w.reviewCount === 1 ? '' : 's'}</span>
+               ${icon('chevronRight', { size: 16, className: 'disclosure-chevron' })}
+             </summary>
+             <div class="worker-reviews-body" data-reviews-slot>
+               <p class="muted text-sm">Loading reviews…</p>
+             </div>
+           </details>`
+        : ''}
+
       <div class="worker-actions">
         ${tel
           ? `<a class="btn btn-primary" href="${escapeHTML(tel)}" data-track="call"
@@ -69,6 +82,49 @@ export function workerCard(w) {
                ${icon('whatsapp', { size: 18 })}<span class="btn-label">WhatsApp</span></a>`
           : ''}
       </div>
+    </article>`;
+}
+
+/**
+ * Lazily load a worker's reviews the first time their disclosure is opened.
+ *
+ * The skill's anti-patterns for this product type flag "hidden reviews", so
+ * they must be reachable from the card itself rather than only in aggregate.
+ * Fetching on open rather than upfront keeps the directory to one query.
+ *
+ * Note: no database match was found for a disclosure-widget guideline, so the
+ * native <details> element is used here as a built-in default — it gives
+ * keyboard operation and correct expanded/collapsed semantics for free.
+ */
+export function wireWorkerReviews(container) {
+  container.addEventListener('toggle', async (e) => {
+    const el = e.target;
+    if (!el.matches('[data-reviews-for]') || !el.open || el.dataset.loaded) return;
+    el.dataset.loaded = 'true';
+
+    const slot = el.querySelector('[data-reviews-slot]');
+    try {
+      const rows = await listReviews({ workerId: el.dataset.reviewsFor, limit: 5 });
+      slot.innerHTML = rows.length
+        ? rows.map(reviewLine).join('')
+        : '<p class="muted text-sm">No written reviews yet.</p>';
+    } catch (err) {
+      console.error('[workers] reviews failed', err);
+      slot.innerHTML = '<p class="muted text-sm">Could not load reviews right now.</p>';
+      el.dataset.loaded = '';
+    }
+  }, true); // capture: `toggle` does not bubble
+}
+
+function reviewLine(r) {
+  return `
+    <article class="worker-review">
+      <div class="worker-review-head">
+        <strong>${escapeHTML(r.author)}</strong>
+        ${starRow(r.rating)}
+        <span class="muted text-sm">${escapeHTML(timeAgo(r.date))}</span>
+      </div>
+      <p class="review-body">${escapeHTML(r.body)}</p>
     </article>`;
 }
 
@@ -271,6 +327,9 @@ export async function hydrateWorkers(params = {}) {
   });
 
   form.addEventListener('submit', (e) => e.preventDefault());
+
+  // Reviews load on first open of each card's disclosure.
+  wireWorkerReviews(grid);
 
   // Light client-side guard against accidental contact spamming.
   grid.addEventListener('click', (e) => {

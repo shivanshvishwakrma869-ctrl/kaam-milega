@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "KaamMilega — find verified local skilled workers across India.",
+  "description": "KaamMilega \u2014 find verified local skilled workers across India.",
   "license": "MIT",
   "scripts": {
     "dev": "vite",
@@ -14,7 +14,8 @@
     "smoke": "npm run build && node scripts/smoke.mjs",
     "verify": "npm run lint && npm run test && npm run smoke",
     "test:watch": "vitest",
-    "emulators": "firebase emulators:start"
+    "emulators": "firebase emulators:start",
+    "seed": "node scripts/seed.mjs"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",

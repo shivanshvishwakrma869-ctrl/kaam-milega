@@ -168,6 +168,79 @@ function loadLocalJobs() {
   }
 }
 
+/**
+ * Apply to a job.
+ *
+ * Goes through the `applyToJob` Cloud Function rather than writing directly:
+ * the applicant counter has to be incremented inside a transaction, and the
+ * client must never be trusted with that number. Firestore rules pin
+ * `applicants` to its existing value on any client update for the same reason.
+ */
+export async function applyToJob(jobId) {
+  if (isDemoMode) {
+    await sleep(DEMO_DELAY);
+    const applied = loadLocalApplications();
+    if (applied.includes(jobId)) {
+      const err = new Error('You have already applied to this job.');
+      err.code = 'already-exists';
+      throw err;
+    }
+    applied.push(jobId);
+    localStorage.setItem('km:demo-applications', JSON.stringify(applied.slice(-50)));
+    return { ok: true, demo: true };
+  }
+
+  const { app } = await initFirebase();
+  const { getFunctions, httpsCallable } = await import('firebase/functions');
+  const fns = getFunctions(app, 'asia-south1');
+  const call = httpsCallable(fns, 'applyToJob');
+  const res = await call({ jobId });
+  return res.data;
+}
+
+/** Job ids the current browser has already applied to (demo mode only). */
+export function loadLocalApplications() {
+  try {
+    const v = JSON.parse(localStorage.getItem('km:demo-applications') || '[]');
+    return Array.isArray(v) ? v : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Submit a review. Cloud-Functions-only by design — `firestore.rules` denies
+ * all client writes to /reviews, because the function has to verify the
+ * reviewer actually hired the worker before a rating is allowed to count.
+ */
+export async function submitReview({ workerId, rating, body }) {
+  if (isDemoMode) {
+    await sleep(DEMO_DELAY);
+    return { ok: true, demo: true };
+  }
+  const { app } = await initFirebase();
+  const { getFunctions, httpsCallable } = await import('firebase/functions');
+  const fns = getFunctions(app, 'asia-south1');
+  const call = httpsCallable(fns, 'submitReview');
+  const res = await call({ workerId, rating, body });
+  return res.data;
+}
+
+/** Map a Cloud Functions error code to language a user can act on. */
+export function callableErrorMessage(err) {
+  const map = {
+    unauthenticated: 'Please log in first.',
+    'already-exists': 'You have already applied to this job.',
+    'permission-denied': 'You are not allowed to do that.',
+    'failed-precondition': 'That job is closed or is your own post.',
+    'not-found': 'That job no longer exists.',
+    'resource-exhausted': 'Too many requests. Please wait a moment.',
+    unavailable: 'Network problem. Check your connection and try again.',
+  };
+  const code = String(err?.code || '').replace(/^functions\//, '');
+  return map[code] || err?.message || 'Something went wrong. Please try again.';
+}
+
 /* ------------------------------------------------------------------ Reviews */
 
 export async function listReviews({ workerId = '', limit = 20 } = {}) {

@@ -47,9 +47,13 @@ Object.defineProperty(global, 'navigator', {
   writable: true,
 });
 
-const { renderHome } = await import('../src/pages/home.js');
-const { renderWorkers } = await import('../src/pages/workers.js');
-const { renderJobs } = await import('../src/pages/jobs.js');
+// localStorage is read by the demo-mode data layer; jsdom provides it, but the
+// hydrate paths also touch it via auth. Make sure it exists and is empty.
+if (!global.localStorage) global.localStorage = dom.window.localStorage;
+
+const { renderHome, hydrateHome } = await import('../src/pages/home.js');
+const { renderWorkers, hydrateWorkers } = await import('../src/pages/workers.js');
+const { renderJobs, hydrateJobs } = await import('../src/pages/jobs.js');
 const { renderAbout, renderPrivacy, renderTerms } = await import('../src/pages/static.js');
 
 const ROUTES = [
@@ -60,6 +64,7 @@ const ROUTES = [
     description:
       'Find verified electricians, plumbers, carpenters, tailors and photographers near you. Call or WhatsApp local skilled workers directly.',
     render: () => renderHome(),
+    hydrate: () => hydrateHome(),
   },
   {
     path: '/workers',
@@ -68,6 +73,7 @@ const ROUTES = [
     description:
       'Search verified electricians, plumbers, carpenters and more by city and trade. See ratings, reviews and day rates.',
     render: () => renderWorkers({}),
+    hydrate: () => hydrateWorkers({}),
   },
   {
     path: '/jobs',
@@ -75,6 +81,10 @@ const ROUTES = [
     title: 'Open Jobs for Skilled Workers | KaamMilega',
     description: 'Browse open work near you and apply directly. Free to post, free to apply.',
     render: () => renderJobs(),
+    hydrate: () => hydrateJobs({}, {
+      // The dialog helpers are interaction-only; prerendering never opens one.
+      openDialog: () => {}, wireDialog: () => {}, closeDialog: () => {},
+    }),
   },
   {
     path: '/about',
@@ -105,6 +115,19 @@ for (const route of ROUTES) {
   const pageDom = new JSDOM(shellHtml, { url: `${SITE}${route.path}` });
   const doc = pageDom.window.document;
 
+  // The page modules close over the *global* document, so point the globals at
+  // this route's DOM for the duration of its render+hydrate. Without this,
+  // hydrate() would write into the bootstrap DOM and every page would ship
+  // its loading skeleton instead of real content.
+  global.window = pageDom.window;
+  global.document = doc;
+  Object.defineProperty(global, 'navigator', {
+    value: pageDom.window.navigator,
+    configurable: true,
+    writable: true,
+  });
+  global.localStorage = pageDom.window.localStorage;
+
   // Inject the rendered markup.
   const view = doc.getElementById('view');
   if (!view) {
@@ -112,6 +135,23 @@ for (const route of ROUTES) {
     process.exit(1);
   }
   view.innerHTML = route.render();
+
+  // Run the data-loading pass so the HTML contains real content rather than
+  // skeletons. In demo mode this reads the bundled seed fixtures, so it is
+  // deterministic and needs no network. A hydrate failure must not silently
+  // ship a skeleton page, so it fails the build.
+  if (route.hydrate) {
+    try {
+      await route.hydrate();
+    } catch (err) {
+      console.error(`[prerender] hydrate failed for ${route.path}:`, err);
+      process.exit(1);
+    }
+    // Drop transient busy flags — the served HTML is already settled.
+    doc.querySelectorAll('[aria-busy="true"]').forEach((el) => {
+      el.setAttribute('aria-busy', 'false');
+    });
+  }
 
   // Per-route head.
   doc.title = route.title;

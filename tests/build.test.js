@@ -11,6 +11,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { WORKERS, JOBS, REVIEWS } from '../src/data/seed.js';
 
 const dist = resolve(__dirname, '../dist');
 const built = existsSync(resolve(dist, 'index.html'));
@@ -150,5 +151,96 @@ describe.runIf(built)('bundle budget', () => {
     const html = read('index.html');
     const preloads = [...html.matchAll(/rel="modulepreload"[^>]*href="([^"]+)"/g)].map((m) => m[1]);
     expect(preloads.some((p) => p.includes('firebase'))).toBe(false);
+  });
+});
+
+describe.runIf(built)('prerendered content is real, not skeletons', () => {
+  it('ships zero loading skeletons in any prerendered route', () => {
+    // A crawler (and a WhatsApp link preview) sees the first byte. If that
+    // byte says "Loading workers..." the page is worthless for SEO and for
+    // sharing, which is the whole reason prerendering exists here.
+    for (const f of [
+      'index.html', 'workers/index.html', 'jobs/index.html',
+      'about/index.html', 'privacy/index.html', 'terms/index.html',
+    ]) {
+      expect(read(f), f).not.toMatch(/class="[^"]*skeleton/);
+    }
+  });
+
+  it('the workers page lists every seeded worker', () => {
+    const html = read('workers/index.html');
+    const cards = html.match(/class="[^"]*worker-card/g) ?? [];
+    expect(cards.length).toBe(WORKERS.length);
+    for (const w of WORKERS) expect(html, w.id).toContain(w.name);
+  });
+
+  it('the jobs page lists every open job', () => {
+    const html = read('jobs/index.html');
+    const cards = html.match(/class="[^"]*job-card/g) ?? [];
+    expect(cards.length).toBe(JOBS.length);
+    for (const j of JOBS) expect(html, j.id).toContain(j.title);
+  });
+
+  it('the home page ships featured workers and real reviews', () => {
+    const html = read('index.html');
+    expect((html.match(/class="[^"]*worker-card/g) ?? []).length).toBeGreaterThanOrEqual(3);
+    // "never hide reviews" — they must be in the served HTML, not JS-only.
+    expect(html).toContain(REVIEWS[0].author);
+  });
+
+  it('exposes a per-worker reviews disclosure on every card', () => {
+    const html = read('workers/index.html');
+    const n = (html.match(/data-reviews-for=/g) ?? []).length;
+    expect(n).toBe(WORKERS.filter((w) => w.reviewCount > 0).length);
+  });
+
+  it('leaves no element stuck in aria-busy="true"', () => {
+    for (const f of ['index.html', 'workers/index.html', 'jobs/index.html']) {
+      expect(read(f), f).not.toContain('aria-busy="true"');
+    }
+  });
+
+  it('does not leak demo localStorage state into the HTML', () => {
+    for (const f of ['index.html', 'workers/index.html', 'jobs/index.html']) {
+      expect(read(f), f).not.toContain('km:demo-user');
+    }
+  });
+
+  it('keeps each prerendered page small enough to stay fast', () => {
+    for (const f of ['index.html', 'workers/index.html', 'jobs/index.html']) {
+      const kb = Buffer.byteLength(read(f)) / 1024;
+      expect(kb, `${f} is ${kb.toFixed(0)}kB`).toBeLessThan(120);
+    }
+  });
+});
+
+describe('CSS custom properties resolve', () => {
+  const css = readFileSync(resolve(__dirname, '../src/styles/main.css'), 'utf8');
+  const tokens = readFileSync(resolve(__dirname, '../src/styles/tokens.css'), 'utf8');
+
+  it('every var() used in main.css is defined, or has a fallback', () => {
+    // An undefined custom property does not error — it silently renders as
+    // nothing, so a typo becomes an invisible layout bug. Anything without a
+    // definition must at least carry a var(--x, fallback).
+    const defined = new Set(
+      [...tokens.matchAll(/(--[a-z0-9-]+)\s*:/g), ...css.matchAll(/(--[a-z0-9-]+)\s*:/g)]
+        .map((m) => m[1]),
+    );
+    const undefinedNoFallback = [...css.matchAll(/var\((--[a-z0-9-]+)\s*(,?)/g)]
+      .filter(([, name, comma]) => !defined.has(name) && comma !== ',')
+      .map(([, name]) => name);
+    expect(undefinedNoFallback).toEqual([]);
+  });
+
+  it('defines every semantic colour token in both themes', () => {
+    const light = tokens.slice(0, tokens.indexOf('prefers-color-scheme: dark'));
+    const dark = tokens.slice(tokens.indexOf('prefers-color-scheme: dark'));
+    const semantic = [...light.matchAll(/(--color-[a-z0-9-]+)\s*:/g)].map((m) => m[1]);
+    expect(semantic.length).toBeGreaterThan(10);
+    // Tokens that must flip between themes or the dark UI breaks.
+    for (const t of ['--color-background', '--color-foreground', '--color-border-subtle']) {
+      expect(semantic, t).toContain(t);
+      expect(dark, `${t} missing a dark value`).toContain(t);
+    }
   });
 });

@@ -20,7 +20,7 @@ serves the seed data in `src/data/seed.js` so the whole UI is explorable
 immediately. A footer notice makes the mode obvious.
 
 ```bash
-npm run verify       # lint + 190 tests + production build + smoke test
+npm run verify       # lint + 257 tests + production build + smoke test
 ```
 
 ## Scripts
@@ -31,10 +31,11 @@ npm run verify       # lint + 190 tests + production build + smoke test
 | `npm run build` | Sitemap → bundle → prerender 6 routes → verify 14 artefacts |
 | `npm run preview` | Serve the production build locally |
 | `npm test` | 190 unit + integration + build-contract tests |
-| `npm run smoke` | Boot the built bundle in jsdom, assert 20 runtime checks |
+| `npm run smoke` | Boot the built bundle in jsdom, assert 24 runtime checks |
 | `npm run lint` | ESLint over app, functions, scripts and tests |
 | `npm run verify` | All of the above — run this before pushing |
 | `npm run emulators` | Firebase emulator suite (auth, firestore, functions) |
+| `npm run seed` | Load the demo fixtures into the local emulator (refuses non-local hosts) |
 
 ---
 
@@ -75,6 +76,17 @@ spreads by people sharing links on WhatsApp.
 `/jobs`, `/about`, `/privacy` and `/terms`, each with its own title,
 description and canonical URL. The SPA hydrates over it. `/profile` is
 deliberately excluded — it is per-user and `noindex`.
+
+Crucially it runs each page's **data-loading pass**, not just its markup
+pass, so the served HTML contains the 9 worker cards, 5 job cards and real
+review text rather than loading skeletons. A build that produced a skeleton
+page would look fine in a browser and be worthless to a crawler or a link
+preview, so `tests/build.test.js` fails the build if any prerendered route
+still contains a `.skeleton` or an `aria-busy="true"`.
+
+Netlify resolves `/workers` to `dist/workers/index.html` before reaching the
+SPA fallback, which is why the catch-all redirect in `netlify.toml` is pinned
+to `force = false`. Setting it to `true` would shadow every prerendered page.
 
 ---
 

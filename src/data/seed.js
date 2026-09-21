@@ -1,6 +1,6 @@
 /**
  * Demo seed data — used when no Firebase project is configured, and as the
- * fixture set for `npm run seed` against the emulator.
+ * fixture set when seeding the local emulator.
  *
  * Phone numbers are in the 999999xxxx reserved-looking range on purpose so a
  * demo click never dials a real person.
@@ -154,6 +154,7 @@ export const JOBS = [
     budgetMax: 30000,
     postedAt: '2026-09-18T09:00:00.000Z',
     urgency: 'this-week',
+    status: 'open',
     description:
       'Newly built 2BHK needs complete wiring including switchboards, fan points and an inverter connection. Material will be provided by the owner.',
     applicants: 7,
@@ -167,6 +168,7 @@ export const JOBS = [
     budgetMax: 2000,
     postedAt: '2026-09-19T14:30:00.000Z',
     urgency: 'urgent',
+    status: 'open',
     description:
       'Continuous leak under the washbasin and two taps that need replacing. Looking for someone who can come today or tomorrow morning.',
     applicants: 12,
@@ -180,6 +182,7 @@ export const JOBS = [
     budgetMax: 35000,
     postedAt: '2026-09-15T07:15:00.000Z',
     urgency: 'scheduled',
+    status: 'open',
     description:
       'Wedding on 12 November. Need candid plus traditional coverage across two days, with an edited album and 200 retouched photographs.',
     applicants: 23,
@@ -193,6 +196,7 @@ export const JOBS = [
     budgetMax: 6000,
     postedAt: '2026-09-20T11:00:00.000Z',
     urgency: 'this-week',
+    status: 'open',
     description:
       'New kirana shop needs a flex board design, 8ft by 4ft, in Hindi and English with our logo.',
     applicants: 4,
@@ -206,6 +210,7 @@ export const JOBS = [
     budgetMax: 5000,
     postedAt: '2026-09-21T06:00:00.000Z',
     urgency: 'scheduled',
+    status: 'open',
     description:
       'Small office of 1200 sq ft needs a monthly deep clean including windows, washrooms and pantry.',
     applicants: 2,
@@ -248,6 +253,54 @@ export const REVIEWS = [
     rating: 5,
     date: '2026-09-01T00:00:00.000Z',
     body: 'Our office has never looked this clean. Very thorough and finished well within the time promised.',
+  },
+  {
+    id: 'r-5',
+    workerId: 'w-neha-singh',
+    author: 'Priya Chauhan',
+    rating: 5,
+    date: '2026-08-29T00:00:00.000Z',
+    body: 'Shot our engagement function and sent the edited photos in four days. She kept everyone comfortable in front of the camera.',
+  },
+  {
+    id: 'r-6',
+    workerId: 'w-ravi-sharma',
+    author: 'Deepak Jaiswal',
+    rating: 5,
+    date: '2026-08-26T00:00:00.000Z',
+    body: 'Cut a thirty minute shop video down to two minutes for Instagram. Understood the brief straight away and did two revisions without fuss.',
+  },
+  {
+    id: 'r-7',
+    workerId: 'w-arjun-mishra',
+    author: 'Farhan Ali',
+    rating: 4,
+    date: '2026-08-22T00:00:00.000Z',
+    body: 'Designed the menu board and pamphlets for my cafe. Good eye for colour. Took a day longer than promised but the work was worth it.',
+  },
+  {
+    id: 'r-8',
+    workerId: 'w-suresh-pal',
+    author: 'Vandana Dubey',
+    rating: 5,
+    date: '2026-08-19T00:00:00.000Z',
+    body: 'Built a wardrobe and a study table for my son. Solid work, no shortcuts on the hinges, and he cleaned up the sawdust before leaving.',
+  },
+  {
+    id: 'r-9',
+    workerId: 'w-imran-khan',
+    author: 'Geeta Rastogi',
+    rating: 4,
+    date: '2026-08-15T00:00:00.000Z',
+    body: 'Painted three rooms in two days. Neat masking around the switches. I had to remind him about the second coat in one room.',
+  },
+  {
+    id: 'r-10',
+    workerId: 'w-rahul-kumar',
+    author: 'Mohit Bansal',
+    rating: 5,
+    date: '2026-08-11T00:00:00.000Z',
+    body: 'Installed an inverter and rewired the meter board. Explained the load calculation clearly instead of just handing me a bill.',
   },
 ];
 

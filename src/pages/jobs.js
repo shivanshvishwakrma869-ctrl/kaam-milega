@@ -5,11 +5,13 @@
 import { icon, tradeIcon } from '../lib/icons.js';
 import { escapeHTML } from '../lib/security.js';
 import { CATEGORIES, CITIES, categoryName } from '../data/categories.js';
-import { listJobs, createJob } from '../lib/api.js';
+import {
+  listJobs, createJob, applyToJob, loadLocalApplications, callableErrorMessage,
+} from '../lib/api.js';
 import { validateJob, FIELD_LABELS } from '../lib/validation.js';
 import { getUser } from '../lib/auth.js';
 import {
-  skeletonCards, formatRange, timeAgo, emptyState, toast,
+  skeletonCards, formatRange, timeAgo, emptyState, toast, announce,
   showFormErrors, clearFormErrors, setButtonLoading,
 } from '../lib/ui.js';
 
@@ -19,7 +21,7 @@ const URGENCY = {
   scheduled: { label: 'Scheduled', cls: 'badge-neutral' },
 };
 
-function jobCard(j) {
+function jobCard(j, isApplied = false) {
   const u = URGENCY[j.urgency] ?? URGENCY.scheduled;
   return `
     <article class="card job-card">
@@ -36,9 +38,15 @@ function jobCard(j) {
       <div class="job-side">
         <span class="badge ${u.cls}">${escapeHTML(u.label)}</span>
         <p class="job-budget">${escapeHTML(formatRange(j.budgetMin, j.budgetMax))}</p>
-        <button type="button" class="btn btn-primary btn-sm" data-apply="${escapeHTML(j.id)}">
-          <span class="btn-label">Apply</span>${icon('arrowRight', { size: 16 })}
-        </button>
+        ${isApplied
+          ? `<button type="button" class="btn btn-secondary btn-sm" data-apply="${escapeHTML(j.id)}"
+                     disabled aria-disabled="true">
+               ${icon('checkCircle', { size: 16 })}<span class="btn-label">Applied</span>
+             </button>`
+          : `<button type="button" class="btn btn-primary btn-sm" data-apply="${escapeHTML(j.id)}"
+                     aria-label="Apply to ${escapeHTML(j.title)}">
+               <span class="btn-label">Apply</span>${icon('arrowRight', { size: 16 })}
+             </button>`}
       </div>
     </article>`;
 }
@@ -162,6 +170,10 @@ export async function hydrateJobs(params = {}, { openDialog, wireDialog, closeDi
   const dialog = document.getElementById('job-dialog');
   let trade = params.trade ?? '';
 
+  // Applications already made, so switching a filter or reloading does not
+  // present an Apply button for a job the user has already applied to.
+  const applied = new Set(loadLocalApplications());
+
   wireDialog(dialog);
 
   async function load() {
@@ -187,7 +199,7 @@ export async function hydrateJobs(params = {}, { openDialog, wireDialog, closeDi
 
     list.setAttribute('aria-busy', 'false');
     list.innerHTML = rows.length
-      ? rows.map(jobCard).join('')
+      ? rows.map((j) => jobCard(j, applied.has(j.id))).join('')
       : emptyState({
           title: 'No open jobs in this trade',
           message: 'Nothing posted here yet. Check another trade, or post the first job yourself.',
@@ -220,17 +232,47 @@ export async function hydrateJobs(params = {}, { openDialog, wireDialog, closeDi
     openDialog(dialog, { returnFocusTo: e.currentTarget });
   });
 
-  list?.addEventListener('click', (e) => {
+  /** Put a button into its terminal "Applied" state. */
+  function markApplied(btn) {
+    btn.disabled = true;
+    btn.setAttribute('aria-disabled', 'true');
+    btn.classList.remove('btn-primary');
+    btn.classList.add('btn-secondary');
+    btn.innerHTML = `${icon('checkCircle', { size: 16 })}<span class="btn-label">Applied</span>`;
+  }
+
+  list?.addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-apply]');
-    if (!btn) return;
+    if (!btn || btn.disabled) return;
+
     if (!getUser()) {
       toast('Please log in first so the customer can contact you back.', 'info');
       document.getElementById('auth-button')?.click();
       return;
     }
-    toast('Your interest has been sent. The customer will see your profile.', 'success');
-    btn.disabled = true;
-    btn.innerHTML = `${icon('checkCircle', { size: 16 })}<span class="btn-label">Applied</span>`;
+
+    const jobId = btn.dataset.apply;
+    setButtonLoading(btn, true, 'Applying…');
+    try {
+      await applyToJob(jobId);
+      applied.add(jobId);
+      setButtonLoading(btn, false);
+      markApplied(btn);
+      toast('Application sent. The customer can now see your profile.', 'success');
+      announce('Application sent');
+    } catch (err) {
+      console.error('[jobs] apply failed', err);
+      setButtonLoading(btn, false);
+      // Already-applied is not a failure the user needs to retry; reflect the
+      // real state instead of leaving an actionable-looking button.
+      if (String(err?.code || '').includes('already-exists')) {
+        applied.add(jobId);
+        markApplied(btn);
+        toast('You have already applied to this job.', 'info');
+      } else {
+        toast(callableErrorMessage(err), 'error');
+      }
+    }
   });
 
   // Live character counter.

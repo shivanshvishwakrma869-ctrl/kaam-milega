@@ -86,6 +86,9 @@ export default [
         vi: 'readonly',
         global: 'readonly',
         globalThis: 'readonly',
+        // Injected into the service-worker VM sandbox in sw.test.js so the
+        // worker under test can log the way it would in a real browser.
+        console: 'readonly',
         // jsdom environment (see the @vitest-environment pragma in ui.test.js)
         document: 'readonly',
         window: 'readonly',

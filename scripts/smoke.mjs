@@ -166,6 +166,32 @@ if (workersLink) {
     `${document.querySelectorAll('#worker-grid .worker-card').length} cards`);
   check('document title updated for the route',
     document.title.includes('Find Skilled Workers'), document.title);
+
+  // Per-worker reviews must be reachable from the card — the skill's
+  // anti-patterns for this product type flag hidden reviews explicitly.
+  const disclosure = document.querySelector('[data-reviews-for]');
+  check('worker cards expose a reviews disclosure', !!disclosure);
+  if (disclosure) {
+    disclosure.open = true;
+    disclosure.dispatchEvent(new window.Event('toggle'));
+    await new Promise((r) => setTimeout(r, 600));
+    const body = disclosure.querySelector('[data-reviews-slot]');
+    check('opening the disclosure loads that worker\'s reviews',
+      !!body && !body.textContent.includes('Loading'),
+      (body?.textContent ?? '').trim().slice(0, 40));
+  }
+
+  // Applying to a job must reach the data layer and reach a terminal state.
+  const jobsLink = document.querySelector('a[data-route="jobs"]');
+  if (jobsLink) {
+    jobsLink.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }));
+    await new Promise((r) => setTimeout(r, 700));
+    check('jobs board rendered',
+      document.querySelectorAll('.job-card').length > 0,
+      `${document.querySelectorAll('.job-card').length} jobs`);
+    const applyBtn = document.querySelector('[data-apply]:not([disabled])');
+    check('an apply button is present', !!applyBtn);
+  }
 } else {
   check('workers nav link present', false);
 }

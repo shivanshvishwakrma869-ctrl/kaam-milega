@@ -90,6 +90,22 @@ Recorded honestly rather than hidden.
    customer must be able to call. Workers should understand this before
    listing; it is stated in the privacy policy.
 
+5. **`submitReview` is reachable but has no verified-engagement source yet.**
+   The function refuses to write a review unless a completed `engagements`
+   document exists for that customer and worker, which is the correct gate.
+   Nothing in the product creates `engagements` yet — a job application does
+   not imply the job was done — so in practice no review can currently be
+   submitted through the UI. The seeded reviews exist to populate the demo.
+   Closing this needs a "mark this job complete" step that both parties
+   confirm; until then, do not relax the check in the function to work around
+   it, because an unverified review system is worse than none for a product
+   whose only real asset is trust.
+
+6. **Applying to a job reveals the applicant's profile to the job owner.**
+   `applyToJob` writes `jobs/{id}/applications/{uid}`, readable by the owner.
+   That is intended, but it means an application is not anonymous and cannot
+   be withdrawn from the UI yet.
+
 ---
 
 ## Pre-launch checklist
