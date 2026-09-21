@@ -81,6 +81,41 @@ const CATEGORY_ROUTES = CATEGORIES.map((c) => {
       `then call or WhatsApp directly — no commission, no middleman.`,
     render: () => renderWorkers({ trade: c.slug }),
     hydrate: () => hydrateWorkers({ trade: c.slug }),
+    breadcrumb: [
+      { name: 'Home', path: '/' },
+      { name: 'Workers', path: '/workers' },
+      { name: `${c.name}s`, path: `/workers/${c.slug}` },
+    ],
+    // An ItemList of the real listings makes the page eligible for rich
+    // results instead of shipping only the generic site-wide graph.
+    itemList: () => {
+      const rows = WORKERS.filter((w) => w.trade === c.slug);
+      if (!rows.length) return null;
+      return {
+        '@type': 'ItemList',
+        name: `${c.name}s on KaamMilega`,
+        numberOfItems: rows.length,
+        itemListElement: rows.map((w, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          item: {
+            '@type': 'Person',
+            name: w.name,
+            jobTitle: c.name,
+            address: { '@type': 'PostalAddress', addressLocality: w.city, addressCountry: 'IN' },
+            ...(w.reviewCount > 0 && {
+              aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: w.rating,
+                reviewCount: w.reviewCount,
+                bestRating: 5,
+                worstRating: 1,
+              },
+            }),
+          },
+        })),
+      };
+    },
     // A category with no workers yet would be a thin/empty page; tell crawlers
     // not to index it rather than publishing an empty result set.
     noindex: count === 0,
@@ -200,6 +235,34 @@ for (const route of ROUTES) {
   set('meta[name="twitter:title"]', 'content', route.title);
   set('meta[name="twitter:description"]', 'content', route.description);
   set('link[rel="canonical"]', 'href', url);
+
+  // Per-route structured data: a BreadcrumbList so search results show the
+  // hierarchy, plus an ItemList of the real listings on category pages.
+  const extraLd = [];
+  if (route.breadcrumb) {
+    extraLd.push({
+      '@type': 'BreadcrumbList',
+      itemListElement: route.breadcrumb.map((b, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: b.name,
+        item: `${SITE}${b.path}`,
+      })),
+    });
+  }
+  const list = route.itemList?.();
+  if (list) extraLd.push(list);
+
+  if (extraLd.length) {
+    const el = doc.createElement('script');
+    el.setAttribute('type', 'application/ld+json');
+    el.textContent = JSON.stringify(
+      { '@context': 'https://schema.org', '@graph': extraLd },
+      null,
+      0,
+    );
+    doc.head.appendChild(el);
+  }
 
   // Thin pages must not be indexed.
   if (route.noindex) {

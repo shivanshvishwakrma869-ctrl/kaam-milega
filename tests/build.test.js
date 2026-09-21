@@ -317,3 +317,84 @@ describe.runIf(built)('category landing pages', () => {
     }
   });
 });
+
+describe.runIf(built)('on-page SEO structure', () => {
+  const pages = [
+    'index.html', 'workers/index.html', 'jobs/index.html', 'about/index.html',
+    'privacy/index.html', 'terms/index.html',
+    ...CATEGORIES.map((c) => `workers/${c.slug}/index.html`),
+  ];
+
+  /** <noscript> content never renders, so it must not count as a heading. */
+  const withoutNoscript = (html) => html.replace(/<noscript>[\s\S]*?<\/noscript>/g, '');
+
+  it('every page has exactly one h1', () => {
+    for (const p of pages) {
+      const h1s = withoutNoscript(read(p)).match(/<h1[\s>]/g) ?? [];
+      expect(h1s.length, `${p} has ${h1s.length}`).toBe(1);
+    }
+  });
+
+  it('category h1s name the trade rather than repeating a generic title', () => {
+    for (const c of CATEGORIES) {
+      const html = withoutNoscript(read(`workers/${c.slug}/index.html`));
+      const h1 = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)[1].replace(/<[^>]+>/g, '').trim();
+      expect(h1, c.slug).toContain(c.name);
+      expect(h1, c.slug).not.toBe('Find a skilled worker');
+    }
+  });
+
+  it('ships a BreadcrumbList that matches the visible breadcrumb', () => {
+    for (const c of CATEGORIES) {
+      const html = read(`workers/${c.slug}/index.html`);
+      // Google requires the markup to reflect what the user actually sees.
+      expect(html, c.slug).toContain('class="breadcrumb"');
+      const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+        .map((m) => JSON.parse(m[1]));
+      const crumb = blocks
+        .flatMap((b) => b['@graph'] ?? [b])
+        .find((n) => n['@type'] === 'BreadcrumbList');
+      expect(crumb, `${c.slug} BreadcrumbList`).toBeTruthy();
+      const names = crumb.itemListElement.map((i) => i.name);
+      expect(names).toEqual(['Home', 'Workers', `${c.name}s`]);
+      crumb.itemListElement.forEach((i, idx) => expect(i.position).toBe(idx + 1));
+    }
+  });
+
+  it('ships an ItemList of the real listings on populated categories', () => {
+    const populated = new Set(WORKERS.map((w) => w.trade));
+    for (const c of CATEGORIES) {
+      const html = read(`workers/${c.slug}/index.html`);
+      const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+        .map((m) => JSON.parse(m[1]));
+      const list = blocks
+        .flatMap((b) => b['@graph'] ?? [b])
+        .find((n) => n['@type'] === 'ItemList');
+      if (!populated.has(c.slug)) {
+        expect(list, `${c.slug} should have no ItemList`).toBeFalsy();
+        continue;
+      }
+      const expected = WORKERS.filter((w) => w.trade === c.slug);
+      expect(list.numberOfItems, c.slug).toBe(expected.length);
+      expect(list.itemListElement.map((i) => i.item.name).sort())
+        .toEqual(expected.map((w) => w.name).sort());
+    }
+  });
+
+  it('keeps every JSON-LD block parseable', () => {
+    for (const p of pages) {
+      const blocks = [...read(p).matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
+      expect(blocks.length, p).toBeGreaterThan(0);
+      for (const b of blocks) expect(() => JSON.parse(b[1]), p).not.toThrow();
+    }
+  });
+
+  it('gives every page a unique title and description', () => {
+    const titles = new Map();
+    for (const p of pages) {
+      const t = read(p).match(/<title>([^<]*)<\/title>/)[1];
+      expect(titles.has(t), `duplicate title "${t}" in ${p} and ${titles.get(t)}`).toBe(false);
+      titles.set(t, p);
+    }
+  });
+});

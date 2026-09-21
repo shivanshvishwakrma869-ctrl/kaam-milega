@@ -133,11 +133,33 @@ export function renderWorkers(params = {}) {
   const city = params.city ?? '';
   const q = params.q ?? '';
 
+  // On a category landing page the heading must name the trade: it is the
+  // page's single strongest on-page ranking signal, and a user arriving from
+  // a search for "electrician" should see that word, not a generic title.
+  const cat = trade ? CATEGORIES.find((c) => c.slug === trade) : null;
+  const heading = cat ? `${escapeHTML(cat.name)}s near you` : 'Find a skilled worker';
+  const intro = cat
+    ? `<p class="section-sub">Verified ${escapeHTML(cat.name.toLowerCase())}s
+         (${escapeHTML(cat.hindi)}) — typical rate around
+         ₹${escapeHTML(String(cat.typicalRate))}/day. Call or WhatsApp directly.</p>`
+    : '';
+
   return `
+    ${cat
+      ? `<nav class="breadcrumb" aria-label="Breadcrumb">
+           <ol>
+             <li><a href="/" data-route="home">Home</a></li>
+             <li><a href="/workers" data-route="workers">Workers</a></li>
+             <li><span aria-current="page">${escapeHTML(cat.name)}s</span></li>
+           </ol>
+         </nav>`
+      : ''}
+
     <div class="section-head" style="margin-top:var(--space-6)">
       <div>
         <p class="eyebrow">Workers</p>
-        <h1 class="section-title" id="workers-title">Find a skilled worker</h1>
+        <h1 class="section-title" id="workers-title">${heading}</h1>
+        ${intro}
         <p class="section-sub" id="result-count" role="status">Loading workers…</p>
       </div>
     </div>
