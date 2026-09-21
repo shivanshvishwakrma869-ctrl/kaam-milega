@@ -12,6 +12,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { WORKERS, JOBS, REVIEWS } from '../src/data/seed.js';
+import { CATEGORIES } from '../src/data/categories.js';
 
 const dist = resolve(__dirname, '../dist');
 const built = existsSync(resolve(dist, 'index.html'));
@@ -87,7 +88,11 @@ describe.runIf(built)('SEO artefacts', () => {
     expect(xml.startsWith('<?xml')).toBe(true);
     expect(xml).toContain('<urlset');
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
-    expect(locs.length).toBeGreaterThanOrEqual(18);
+    // 6 static routes + one page per category that actually has a worker.
+    // Empty categories are deliberately excluded: they are prerendered as
+    // noindex, and a sitemap must never advertise a noindex URL.
+    const populated = new Set(WORKERS.map((w) => w.trade));
+    expect(locs.length).toBe(6 + populated.size);
     for (const loc of locs) {
       expect(() => new URL(loc.replace(/&amp;/g, '&')), loc).not.toThrow();
     }
@@ -241,6 +246,74 @@ describe('CSS custom properties resolve', () => {
     for (const t of ['--color-background', '--color-foreground', '--color-border-subtle']) {
       expect(semantic, t).toContain(t);
       expect(dark, `${t} missing a dark value`).toContain(t);
+    }
+  });
+});
+
+describe.runIf(built)('category landing pages', () => {
+  const populated = [...new Set(WORKERS.map((w) => w.trade))];
+
+  it('prerenders a page for every category', () => {
+    for (const c of CATEGORIES) {
+      expect(existsSync(resolve(dist, `workers/${c.slug}/index.html`)), c.slug).toBe(true);
+    }
+  });
+
+  it('gives each category its own self-referencing canonical', () => {
+    // The previous /workers?trade=x URLs all canonicalised to /workers, so
+    // Google dropped them as duplicates. Each page must point at itself.
+    for (const c of CATEGORIES) {
+      const html = read(`workers/${c.slug}/index.html`);
+      const canonical = html.match(/rel="canonical" href="([^"]+)"/)?.[1];
+      expect(canonical, c.slug).toBe(`https://kaam-milega.netlify.app/workers/${c.slug}`);
+    }
+  });
+
+  it('gives each category a unique title and description', () => {
+    const titles = new Set();
+    const descs = new Set();
+    for (const c of CATEGORIES) {
+      const html = read(`workers/${c.slug}/index.html`);
+      titles.add(html.match(/<title>([^<]*)<\/title>/)[1]);
+      descs.add(html.match(/name="description" content="([^"]*)"/)[1]);
+    }
+    expect(titles.size).toBe(CATEGORIES.length);
+    expect(descs.size).toBe(CATEGORIES.length);
+  });
+
+  it('filters the listing to that trade only', () => {
+    for (const slug of populated) {
+      const html = read(`workers/${slug}/index.html`);
+      const shown = WORKERS.filter((w) => html.includes(w.name));
+      expect(shown.length, slug).toBeGreaterThan(0);
+      for (const w of shown) expect(w.trade, `${w.name} on /${slug}`).toBe(slug);
+    }
+  });
+
+  it('marks empty categories noindex instead of shipping a thin page', () => {
+    for (const c of CATEGORIES) {
+      const html = read(`workers/${c.slug}/index.html`);
+      const empty = !populated.includes(c.slug);
+      expect(/noindex/.test(html), `${c.slug} empty=${empty}`).toBe(empty);
+    }
+  });
+
+  it('lists only indexable category pages in the sitemap', () => {
+    const xml = read('sitemap.xml');
+    // A sitemap must never advertise a noindex URL, and never a query string
+    // that resolves to a different canonical.
+    expect(xml).not.toContain('?trade=');
+    for (const c of CATEGORIES) {
+      const inSitemap = xml.includes(`/workers/${c.slug}<`);
+      expect(inSitemap, c.slug).toBe(populated.includes(c.slug));
+    }
+  });
+
+  it('links to category pages internally so they can be crawled', () => {
+    // An orphan page in a sitemap gets crawled late and ranked poorly.
+    const home = read('index.html');
+    for (const slug of populated) {
+      expect(home, slug).toContain(`/workers/${slug}`);
     }
   });
 });

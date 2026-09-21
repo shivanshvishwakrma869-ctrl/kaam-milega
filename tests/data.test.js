@@ -8,6 +8,8 @@
  * test failure locally.
  */
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { WORKERS, JOBS, REVIEWS, STATS } from '../src/data/seed.js';
 import { CATEGORIES, CITIES } from '../src/data/categories.js';
 import { PATTERNS, LIMITS } from '../src/lib/validation.js';
@@ -192,5 +194,36 @@ describe('categories fixture', () => {
       expect(c.name, c.slug).not.toMatch(EMOJI);
       expect(c.hindi, c.slug).not.toMatch(EMOJI);
     }
+  });
+});
+
+describe('applied-state buttons stay accessible', () => {
+  const jobsSrc = readFileSync(resolve(__dirname, '../src/pages/jobs.js'), 'utf8');
+  const css = readFileSync(resolve(__dirname, '../src/styles/main.css'), 'utf8');
+
+  it('marks an applied job with aria-disabled, not the disabled property', () => {
+    // Browsers blur a focused element when it becomes disabled, dumping a
+    // keyboard user at the top of the page immediately after they press
+    // Enter. aria-disabled keeps the button focusable and still announces it.
+    expect(jobsSrc).toMatch(/setAttribute\('aria-disabled', 'true'\)/);
+    expect(jobsSrc).not.toMatch(/function markApplied[\s\S]{0,400}btn\.disabled = true/);
+  });
+
+  it('still refuses to act on an aria-disabled button', () => {
+    expect(jobsSrc).toMatch(/getAttribute\('aria-disabled'\) === 'true'\) return/);
+  });
+
+  it('styles aria-disabled buttons as unavailable', () => {
+    expect(css).toMatch(/\[aria-disabled="true"\][\s\S]{0,120}cursor: not-allowed/);
+  });
+
+  it('suppresses hover and active effects on aria-disabled buttons', () => {
+    // Otherwise a finished button still lifts and recolours on hover, which
+    // reads as "clickable" to a sighted user.
+    const hoverRules = css.match(/\.btn-[a-z]+:hover:not\(:disabled\)[^{]*/g) ?? [];
+    for (const r of hoverRules) {
+      expect(r, r).toContain('[aria-disabled="true"]');
+    }
+    expect(css).toMatch(/\.btn:active:not\(:disabled\):not\(\[aria-disabled="true"\]\)/);
   });
 });

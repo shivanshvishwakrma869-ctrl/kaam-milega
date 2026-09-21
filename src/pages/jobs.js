@@ -40,7 +40,7 @@ function jobCard(j, isApplied = false) {
         <p class="job-budget">${escapeHTML(formatRange(j.budgetMin, j.budgetMax))}</p>
         ${isApplied
           ? `<button type="button" class="btn btn-secondary btn-sm" data-apply="${escapeHTML(j.id)}"
-                     disabled aria-disabled="true">
+                     aria-disabled="true">
                ${icon('checkCircle', { size: 16 })}<span class="btn-label">Applied</span>
              </button>`
           : `<button type="button" class="btn btn-primary btn-sm" data-apply="${escapeHTML(j.id)}"
@@ -232,9 +232,16 @@ export async function hydrateJobs(params = {}, { openDialog, wireDialog, closeDi
     openDialog(dialog, { returnFocusTo: e.currentTarget });
   });
 
-  /** Put a button into its terminal "Applied" state. */
+  /**
+   * Put a button into its terminal "Applied" state.
+   *
+   * Uses aria-disabled rather than the disabled property on purpose: browsers
+   * blur a focused element the moment it becomes disabled, which would throw a
+   * keyboard user back to the top of the page right after they pressed Enter.
+   * The element stays focusable and announces as unavailable; the click
+   * handler enforces the actual no-op.
+   */
   function markApplied(btn) {
-    btn.disabled = true;
     btn.setAttribute('aria-disabled', 'true');
     btn.classList.remove('btn-primary');
     btn.classList.add('btn-secondary');
@@ -243,7 +250,7 @@ export async function hydrateJobs(params = {}, { openDialog, wireDialog, closeDi
 
   list?.addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-apply]');
-    if (!btn || btn.disabled) return;
+    if (!btn || btn.disabled || btn.getAttribute('aria-disabled') === 'true') return;
 
     if (!getUser()) {
       toast('Please log in first so the customer can contact you back.', 'info');

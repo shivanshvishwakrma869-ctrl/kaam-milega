@@ -365,7 +365,7 @@ main {
   height: 18px;
 }
 
-.btn:active:not(:disabled) {
+.btn:active:not(:disabled):not([aria-disabled="true"]) {
   transform: translateY(1px);
 }
 
@@ -380,7 +380,7 @@ main {
   color: var(--color-on-primary);
 }
 
-.btn-primary:hover:not(:disabled) {
+.btn-primary:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--color-primary-hover);
   color: var(--color-on-primary);
 }
@@ -390,7 +390,7 @@ main {
   color: var(--color-on-accent);
 }
 
-.btn-accent:hover:not(:disabled) {
+.btn-accent:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--color-accent-hover);
   color: var(--color-on-accent);
 }
@@ -401,7 +401,7 @@ main {
   border-color: var(--color-border);
 }
 
-.btn-secondary:hover:not(:disabled) {
+.btn-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--color-muted);
   color: var(--color-foreground);
 }
@@ -411,7 +411,7 @@ main {
   color: var(--color-muted-foreground);
 }
 
-.btn-ghost:hover:not(:disabled) {
+.btn-ghost:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--color-muted);
   color: var(--color-foreground);
 }
@@ -421,7 +421,7 @@ main {
   color: var(--color-on-destructive);
 }
 
-.btn-danger:hover:not(:disabled) {
+.btn-danger:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--color-destructive-hover);
 }
 
@@ -431,7 +431,7 @@ main {
   border-color: color-mix(in srgb, var(--color-success) 30%, transparent);
 }
 
-.btn-whatsapp:hover:not(:disabled) {
+.btn-whatsapp:hover:not(:disabled):not([aria-disabled="true"]) {
   background: color-mix(in srgb, var(--color-success) 18%, var(--color-card));
 }
 

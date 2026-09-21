@@ -8,6 +8,7 @@
 import { writeFileSync, mkdirSync, copyFileSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { WORKERS } from '../src/data/seed.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
@@ -36,8 +37,16 @@ const ROUTES = [
   { path: '/terms', changefreq: 'yearly', priority: '0.3' },
 ];
 
-const categoryRoutes = CATEGORY_SLUGS.map((slug) => ({
-  path: `/workers?trade=${slug}`,
+// Category landing pages get their own crawlable path, NOT `?trade=`.
+// Netlify serves dist/workers/index.html for a query string, and that file
+// canonicalises to /workers — so query-string URLs in a sitemap are reported
+// as "Duplicate, submitted URL not selected as canonical" and never indexed.
+//
+// Only categories that actually have a worker are listed: prerender marks the
+// empty ones noindex, and a sitemap must never advertise a noindex URL.
+const populated = new Set(WORKERS.map((w) => w.trade));
+const categoryRoutes = CATEGORY_SLUGS.filter((slug) => populated.has(slug)).map((slug) => ({
+  path: `/workers/${slug}`,
   changefreq: 'daily',
   priority: '0.8',
 }));

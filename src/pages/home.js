@@ -151,7 +151,7 @@ function statTile(value, label) {
 
 function categoryTile(cat) {
   return `
-    <a class="card card-interactive category-card" href="/workers?trade=${encodeURIComponent(cat.slug)}"
+    <a class="card card-interactive category-card" href="/workers/${encodeURIComponent(cat.slug)}"
        data-route="workers" style="text-decoration:none;color:inherit">
       <span class="category-icon">${icon(tradeIcon(cat.slug), { size: 22 })}</span>
       <h3>${escapeHTML(cat.name)}</h3>

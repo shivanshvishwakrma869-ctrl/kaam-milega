@@ -21,6 +21,7 @@ import { isDemoMode, initAnalytics } from './lib/firebase.js';
 import { validatePhoneStep, validateOtpStep, FIELD_LABELS } from './lib/validation.js';
 import { rateLimit } from './lib/security.js';
 
+import { CATEGORIES } from './data/categories.js';
 import { renderHome, hydrateHome } from './pages/home.js';
 import { renderWorkers, hydrateWorkers } from './pages/workers.js';
 import { renderJobs, hydrateJobs } from './pages/jobs.js';
@@ -86,12 +87,38 @@ const ROUTES = {
 const view = document.getElementById('view');
 let currentRoute = null;
 
-/** Resolve the current URL to a route + params. */
+/**
+ * Resolve the current URL to a route + params.
+ *
+ * `/workers/<trade>` is a real, prerendered, individually-canonical landing
+ * page for each category — those are the highest-intent queries this product
+ * can rank for. The client router has to understand them too, or hydrating a
+ * page a crawler just indexed would fall through to "Page not found".
+ */
 function resolve(pathname = location.pathname, search = location.search) {
   const clean = pathname.replace(/\/+$/, '') || '/';
-  const route = ROUTES[clean];
   const params = Object.fromEntries(new URLSearchParams(search));
-  return { route, params, path: clean };
+
+  const category = clean.match(/^\/workers\/([a-z][a-z-]*)$/);
+  if (category) {
+    const cat = CATEGORIES.find((c) => c.slug === category[1]);
+    if (cat) {
+      return {
+        route: {
+          ...ROUTES['/workers'],
+          title: `${cat.name}s Near You — Verified & Rated | KaamMilega`,
+          description:
+            `Find verified ${cat.name.toLowerCase()}s (${cat.hindi}) near you. ` +
+            `Typical rate around ₹${cat.typicalRate}/day. See ratings and reviews, ` +
+            `then call or WhatsApp directly — no commission, no middleman.`,
+        },
+        params: { ...params, trade: cat.slug },
+        path: clean,
+      };
+    }
+  }
+
+  return { route: ROUTES[clean], params, path: clean };
 }
 
 /** Update the document head for the active route (SEO for a client-side app). */

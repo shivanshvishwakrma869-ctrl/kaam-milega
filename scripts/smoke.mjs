@@ -192,6 +192,21 @@ if (workersLink) {
     const applyBtn = document.querySelector('[data-apply]:not([disabled])');
     check('an apply button is present', !!applyBtn);
   }
+
+  // Category landing pages are the highest-intent SEO surface. The client
+  // router must resolve /workers/<trade> and filter to it — not fall through
+  // to "Page not found" on a URL a crawler has already indexed.
+  window.dispatchEvent(
+    new window.CustomEvent('km:navigate', { detail: { url: '/workers/electrician' } }),
+  );
+  await new Promise((r) => setTimeout(r, 700));
+  check('client router resolves /workers/<trade>',
+    !document.title.toLowerCase().includes('not found'), document.title);
+  check('category page sets a trade-specific title',
+    /electrician/i.test(document.title), document.title);
+  const catCards = document.querySelectorAll('.worker-card').length;
+  check('category page filters the directory',
+    catCards > 0 && catCards < 9, `${catCards} of 9 workers`);
 } else {
   check('workers nav link present', false);
 }

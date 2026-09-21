@@ -56,6 +56,37 @@ const { renderWorkers, hydrateWorkers } = await import('../src/pages/workers.js'
 const { renderJobs, hydrateJobs } = await import('../src/pages/jobs.js');
 const { renderAbout, renderPrivacy, renderTerms } = await import('../src/pages/static.js');
 
+const { CATEGORIES } = await import('../src/data/categories.js');
+const { WORKERS } = await import('../src/data/seed.js');
+
+/**
+ * Category landing pages — the highest-intent queries this product can rank
+ * for ("electrician near me"). They were previously listed in the sitemap as
+ * `/workers?trade=x`, but Netlify serves dist/workers/index.html for those,
+ * whose canonical is `/workers`. Google treats that as a duplicate and drops
+ * the URL, so the twelve best pages on the site were unindexable.
+ *
+ * Each now gets a real directory, its own canonical, its own title and
+ * description, and content filtered to that trade.
+ */
+const CATEGORY_ROUTES = CATEGORIES.map((c) => {
+  const count = WORKERS.filter((w) => w.trade === c.slug).length;
+  return {
+    path: `/workers/${c.slug}`,
+    file: `workers/${c.slug}/index.html`,
+    title: `${c.name}s Near You — Verified & Rated | KaamMilega`,
+    description:
+      `Find verified ${c.name.toLowerCase()}s (${c.hindi}) near you. ` +
+      `Typical rate around ₹${c.typicalRate}/day. See ratings and reviews, ` +
+      `then call or WhatsApp directly — no commission, no middleman.`,
+    render: () => renderWorkers({ trade: c.slug }),
+    hydrate: () => hydrateWorkers({ trade: c.slug }),
+    // A category with no workers yet would be a thin/empty page; tell crawlers
+    // not to index it rather than publishing an empty result set.
+    noindex: count === 0,
+  };
+});
+
 const ROUTES = [
   {
     path: '/',
@@ -108,6 +139,8 @@ const ROUTES = [
     render: () => renderTerms(),
   },
 ];
+
+ROUTES.push(...CATEGORY_ROUTES);
 
 let written = 0;
 
@@ -167,6 +200,17 @@ for (const route of ROUTES) {
   set('meta[name="twitter:title"]', 'content', route.title);
   set('meta[name="twitter:description"]', 'content', route.description);
   set('link[rel="canonical"]', 'href', url);
+
+  // Thin pages must not be indexed.
+  if (route.noindex) {
+    let robots = doc.querySelector('meta[name="robots"]');
+    if (!robots) {
+      robots = doc.createElement('meta');
+      robots.setAttribute('name', 'robots');
+      doc.head.appendChild(robots);
+    }
+    robots.setAttribute('content', 'noindex, follow');
+  }
 
   // Mark the active nav item so the pre-hydration paint matches.
   doc.querySelectorAll('a[data-route]').forEach((a) => {

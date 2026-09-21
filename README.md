@@ -20,7 +20,7 @@ serves the seed data in `src/data/seed.js` so the whole UI is explorable
 immediately. A footer notice makes the mode obvious.
 
 ```bash
-npm run verify       # lint + 257 tests + production build + smoke test
+npm run verify       # lint + 270 tests + production build + smoke test
 ```
 
 ## Scripts
@@ -28,10 +28,10 @@ npm run verify       # lint + 257 tests + production build + smoke test
 | Command | What it does |
 |---|---|
 | `npm run dev` | Vite dev server with HMR |
-| `npm run build` | Sitemap → bundle → prerender 6 routes → verify 14 artefacts |
+| `npm run build` | Sitemap → bundle → prerender 18 routes → verify artefacts |
 | `npm run preview` | Serve the production build locally |
 | `npm test` | 190 unit + integration + build-contract tests |
-| `npm run smoke` | Boot the built bundle in jsdom, assert 24 runtime checks |
+| `npm run smoke` | Boot the built bundle in jsdom, assert 27 runtime checks |
 | `npm run lint` | ESLint over app, functions, scripts and tests |
 | `npm run verify` | All of the above — run this before pushing |
 | `npm run emulators` | Firebase emulator suite (auth, firestore, functions) |
@@ -87,6 +87,20 @@ still contains a `.skeleton` or an `aria-busy="true"`.
 Netlify resolves `/workers` to `dist/workers/index.html` before reaching the
 SPA fallback, which is why the catch-all redirect in `netlify.toml` is pinned
 to `force = false`. Setting it to `true` would shadow every prerendered page.
+
+### Category landing pages
+
+`/workers/electrician`, `/workers/plumber` and so on are the highest-intent
+queries this product can rank for, so each is a real prerendered page with its
+own canonical, title, description and a listing filtered to that trade.
+
+They used to be `/workers?trade=electrician` in the sitemap. That does not
+work: Netlify serves `dist/workers/index.html` for a query string, and that
+file canonicalises to `/workers`, so Google reports every one of them as
+"Duplicate, submitted URL not selected as canonical" and indexes none of them.
+
+A category with no workers yet is prerendered `noindex` and left out of the
+sitemap rather than published as a thin, empty page.
 
 ---
 
